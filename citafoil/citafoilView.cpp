@@ -352,7 +352,7 @@ VOID CcitafoilView::outtextxy(LONG _x, LONG _y, CONST CHAR* txt)
 /// <summary>draws list of points</summary>
 VOID CcitafoilView::plist(fa_point* point, UINT _size)
 {
-	UINT register i, j;	// counter
+	UINT i, j;			// counter
 	VOID* pVoid;		// the void pointer
 	fa_VERTEX* vertex;	// array vertices that to be drawed
 	UINT number_of_points = _size / sizeof(fa_point);	// number of control points

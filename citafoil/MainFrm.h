@@ -14,7 +14,7 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 
-protected:
+private:
 	CMFCMenuBar       m_wndMenuBar;
 	CMFCToolBar       m_wndToolBar;
 	CMFCStatusBar     m_wndStatusBar;
@@ -26,4 +26,5 @@ protected:
 	DECLARE_MESSAGE_MAP()
 	BOOL CreateDockingWindows();
 	void SetDockingWindowIcons(BOOL bHiColorIcons);
+	void OnUpdateFrameTitle(BOOL bAddToTitle);
 };

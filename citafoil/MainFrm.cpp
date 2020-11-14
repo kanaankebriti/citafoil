@@ -148,6 +148,12 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return 0;
 }
 
+void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
+{
+	// set application's name
+	SetWindowText(L"citaplot");
+}
+
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
 	if( !CFrameWndEx::PreCreateWindow(cs) )

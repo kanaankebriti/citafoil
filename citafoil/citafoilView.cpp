@@ -16,6 +16,7 @@
 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░*/
 #include "pch.h"
 #include "framework.h"
+#include <vector>
 // SHARED_HANDLERS can be defined in an ATL project implementing preview, thumbnail
 // and search filter handlers and allows sharing of document code with that project.
 #ifndef SHARED_HANDLERS
@@ -368,45 +369,52 @@ VOID CcitafoilView::outtextxy(LONG _x, LONG _y, CONST CHAR* txt)
 /// <summary>draws list of points</summary>
 VOID CcitafoilView::plist(fa_point* point, UINT _size)
 {
-	UINT i, j;			// counter
+	UINT i;				// counter
 	VOID* pVoid;		// the void pointer
-	fa_VERTEX* vertex;	// array vertices that to be drawed
 	UINT number_of_points = _size / sizeof(fa_point);	// number of control points
-
-	// three vertices per point (a triangle)
-	UINT number_of_vertices = number_of_points;
-	number_of_vertices *= 3;
-
-	// memory allocation for vertices
-	vertex = (fa_VERTEX*)malloc(number_of_vertices * sizeof(fa_VERTEX));
+	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> vertex;
 
 	// map control point #0 to point #n to vertex
-	for (i = 0, j = 0; i < number_of_points; i++, j += 3)
+	for (i = 0; i < number_of_points; i++)
 	{
 		// 1.155 = sqrt(16/3) / 2
-		vertex[j].location.x = point[i].location.x + 1.155f * TRIANGLE_UNIT_LENGTH;
-		vertex[j].location.y = point[i].location.y - TRIANGLE_UNIT_LENGTH;
-		vertex[j].location.z = 0;
-		vertex[j].color = palette;
+		vertex.push_back(
+			std::pair(
+				D3DXVECTOR3(
+					FLOAT(point[i].location.x + 1.155f * TRIANGLE_UNIT_LENGTH)
+					, FLOAT(point[i].location.y - TRIANGLE_UNIT_LENGTH)
+					, FLOAT(0))
+				, palette
+			)
+		);
 
-		vertex[j + 1].location.x = point[i].location.x - 1.155f * TRIANGLE_UNIT_LENGTH;
-		vertex[j + 1].location.y = point[i].location.y - TRIANGLE_UNIT_LENGTH;
-		vertex[j + 1].location.z = 0;
-		vertex[j + 1].color = palette;
+		vertex.push_back(
+			std::pair(
+				D3DXVECTOR3(
+					FLOAT(point[i].location.x - 1.155f * TRIANGLE_UNIT_LENGTH)
+					, FLOAT(point[i].location.y - TRIANGLE_UNIT_LENGTH)
+					, FLOAT(0))
+				, palette
+			)
+		);
 
-		vertex[j + 2].location.x = point[i].location.x;
-		vertex[j + 2].location.y = point[i].location.y + TRIANGLE_UNIT_LENGTH;
-		vertex[j + 2].location.z = 0;
-		vertex[j + 2].color = palette;
+		vertex.push_back(
+			std::pair(
+				D3DXVECTOR3(
+					FLOAT(point[i].location.x)
+					, FLOAT(point[i].location.y + TRIANGLE_UNIT_LENGTH)
+					, FLOAT(0))
+				, palette
+			)
+		);
 	}
 
-	d3ddev->CreateVertexBuffer(number_of_vertices * sizeof(fa_VERTEX) - sizeof(D3DXVECTOR3), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL);
-	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);							// lock the vertex buffer
-	memcpy(pVoid, vertex, number_of_vertices * sizeof(fa_VERTEX) - sizeof(D3DXVECTOR3));	// copy the vertices to the locked buffer
-	free(vertex);
-	vertex_buffer->Unlock();											// unlock the vertex buffer
-	d3ddev->SetStreamSource(0, vertex_buffer, 0, sizeof(fa_VERTEX));	// select the vertex buffer to display
-	d3ddev->DrawPrimitive(D3DPT_TRIANGLELIST, 0, number_of_vertices);	// copy the vertex buffer to the back buffer
+	d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL);
+	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
+	memcpy(pVoid, vertex.data(), vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// copy the vertices to the locked buffer
+	vertex_buffer->Unlock();	// unlock the vertex buffer
+	d3ddev->SetStreamSource(0, vertex_buffer, 0, (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// select the vertex buffer to display
+	d3ddev->DrawPrimitive(D3DPT_TRIANGLELIST, 0, UINT(vertex.size()));	// copy the vertex buffer to the back buffer
 }
 
 // CcitafoilView diagnostics
@@ -428,6 +436,3 @@ CcitafoilDoc* CcitafoilView::GetDocument() const // non-debug version is inline
 	return (CcitafoilDoc*)m_pDocument;
 }
 #endif //_DEBUG
-
-
-// CcitafoilView message handlers

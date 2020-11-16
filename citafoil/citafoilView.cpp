@@ -16,7 +16,10 @@
 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░*/
 #include "pch.h"
 #include "framework.h"
+#include <Windows.h>
 #include <vector>
+#include <string>
+#include <Include/DxErr.h>
 // SHARED_HANDLERS can be defined in an ATL project implementing preview, thumbnail
 // and search filter handlers and allows sharing of document code with that project.
 #ifndef SHARED_HANDLERS
@@ -31,8 +34,21 @@
 #define new DEBUG_NEW
 #endif
 
+#pragma comment(lib, "d3d9.lib")
+#pragma comment(lib, "d3dx9.lib")
+#pragma comment(lib, "dxerr.lib")
+#pragma comment(lib, "legacy_stdio_definitions.lib")
 
-// CcitafoilView
+LPCWSTR get_error_string_d3d9(HRESULT hr)
+{
+	std::wstring warning_msg_str = std::wstring(DXGetErrorString(hr)) + std::wstring(DXGetErrorDescription(hr));
+	LPCWSTR warning_msg = warning_msg_str.c_str();
+	return warning_msg;
+}
+
+#define ERROR_MSG(X) AfxMessageBox(X, MB_ICONSTOP | MB_OK);
+#define HR_CHECK(X) if (FAILED(X)) { ERROR_MSG(get_error_string_d3d9(X)); __debugbreak(); }
+
 
 IMPLEMENT_DYNCREATE(CcitafoilView, CView)
 
@@ -44,12 +60,8 @@ BEGIN_MESSAGE_MAP(CcitafoilView, CView)
 	ON_WM_CREATE()
 END_MESSAGE_MAP()
 
-// CcitafoilView construction/destruction
-
 CcitafoilView::CcitafoilView() noexcept
 {
-	// TODO: add construction code here
-
 }
 
 CcitafoilView::~CcitafoilView()
@@ -73,7 +85,7 @@ void CcitafoilView::OnInitialUpdate()
 	d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, this->m_hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dpp, &d3ddev);
 
 	// visible back side of primitives
-	//d3ddev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	//HR_CHECK(d3ddev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE));
 }
 
 void CcitafoilView::OnComboChanged()
@@ -131,7 +143,7 @@ BOOL CcitafoilView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 		&cam_position,						// the camera position. this position (negative z) helps resembling conventional cartesian space.
 		&D3DXVECTOR3(0.5f, 0.0f, 0.0f),		// the look-at position
 		&D3DXVECTOR3(0.0f, 1.0f, 0.0f));	// the up direction
-	d3ddev->SetTransform(D3DTS_VIEW, &matView);	// set the view transform to matView
+	HR_CHECK(d3ddev->SetTransform(D3DTS_VIEW, &matView));	// set the view transform to matView
 
 	OnComboChanged();
 	return TRUE;
@@ -158,7 +170,7 @@ void CcitafoilView::OnDraw(CDC* /*pDC*/)
 	this->GetClientRect(rectClient);
 	d3dpp.BackBufferWidth = rectClient.right - rectClient.left;
 	d3dpp.BackBufferHeight = rectClient.bottom - rectClient.top;
-	d3ddev->Reset(&d3dpp);
+	HR_CHECK(d3ddev->Reset(&d3dpp));
 
 	// the view transform matrix
 	D3DXMATRIX matView;
@@ -166,7 +178,8 @@ void CcitafoilView::OnDraw(CDC* /*pDC*/)
 		&cam_position,						// the camera position. this position (negative z) helps resembling conventional cartesian space.
 		&D3DXVECTOR3(0.5f, 0.0f, 0.0f),		// the look-at position
 		&D3DXVECTOR3(0.0f, 1.0f, 0.0f));	// the up direction
-	d3ddev->SetTransform(D3DTS_VIEW, &matView);	// set the view transform to matView
+	HR_CHECK(d3ddev->SetTransform(D3DTS_VIEW, &matView));	// set the view transform to matView
+	
 	// aspect ratio
 	RECT lpRect;
 	this->GetWindowRect(&lpRect);
@@ -181,11 +194,11 @@ void CcitafoilView::OnDraw(CDC* /*pDC*/)
 		wndAspect,			// aspect ratio
 		1,					// the near view-plane
 		0);					// the far view-plane
-	d3ddev->SetTransform(D3DTS_PROJECTION, &matProjection);
+	HR_CHECK(d3ddev->SetTransform(D3DTS_PROJECTION, &matProjection));
 	// select which vertex format we are using
-	d3ddev->SetFVF(D3DFVF);
+	HR_CHECK(d3ddev->SetFVF(D3DFVF));
 	// turn off the 3D lighting
-	d3ddev->SetRenderState(D3DRS_LIGHTING, FALSE);
+	HR_CHECK(d3ddev->SetRenderState(D3DRS_LIGHTING, FALSE));
 	// clear output
 	OnComboChanged();
 }
@@ -206,19 +219,19 @@ void CcitafoilView::OnContextMenu(CWnd* /* pWnd */, CPoint point)
 /// <summary>clears entire viewport rectangle and sets background color</summary>
 VOID CcitafoilView::cls()
 {
-	d3ddev->Clear(0, 0, 1, bpalette, 1, 0);
+	HR_CHECK(d3ddev->Clear(0, 0, 1, bpalette, 1, 0));
 }
 
 /// <summary>begins draw to screen</summary>
 VOID CcitafoilView::begindraw()
 {
-	d3ddev->BeginScene();
+	HR_CHECK(d3ddev->BeginScene());
 }
 
 /// <summary>ends draw to screen</summary>
 VOID CcitafoilView::enddraw()
 {
-	d3ddev->EndScene();
+	HR_CHECK(d3ddev->EndScene());
 }
 
 /// <summary>draws a 2d line</summary>
@@ -232,12 +245,12 @@ VOID CcitafoilView::line(_In_ FLOAT _x1, _In_ FLOAT _y1, _In_ FLOAT _x2, _In_ FL
 		{D3DXVECTOR3(_x2, _y2, 0), palette }
 	};
 
-	d3ddev->CreateVertexBuffer(sizeof(vertices), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL);
+	HR_CHECK(d3ddev->CreateVertexBuffer(sizeof(vertices), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL));
 	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
 	memcpy(pVoid, vertices, sizeof(vertices));		// copy the vertices to the locked buffer
 	vertex_buffer->Unlock();						// unlock the vertex buffer
-	d3ddev->SetStreamSource(0, vertex_buffer, 0, sizeof(fa_VERTEX));	// select the vertex buffer to display
-	d3ddev->DrawPrimitive(D3DPT_LINESTRIP, 0, 1);						// copy the vertex buffer to the back buffer
+	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, sizeof(fa_VERTEX)));	// select the vertex buffer to display
+	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINESTRIP, 0, 1));						// copy the vertex buffer to the back buffer
 }
 
 /// <summary>main rendering function</summary>
@@ -247,7 +260,7 @@ VOID CcitafoilView::render()
 	//cls();
 	//CRect rectClient;
 	//GetClientRect(rectClient);
-	d3ddev->Present(NULL, NULL, NULL, NULL);
+	HR_CHECK(d3ddev->Present(NULL, NULL, NULL, NULL));
 }
 
 /// <summary>draws a 2d pixel with color specified in palette</summary>
@@ -262,13 +275,13 @@ VOID CcitafoilView::pset(_In_ FLOAT _x, _In_ FLOAT _y)
 		{ D3DXVECTOR3(_x, _y + TRIANGLE_UNIT_LENGTH, 0.0f), palette}
 	};
 
-	d3ddev->CreateVertexBuffer(3 * sizeof(fa_VERTEX), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL);
+	HR_CHECK(d3ddev->CreateVertexBuffer(3 * sizeof(fa_VERTEX), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL));
 	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);
 	memcpy(pVoid, &point, 3 * sizeof(fa_VERTEX));		// copy the vertices to the locked buffer
 	vertex_buffer->Unlock();							// unlock the vertex buffer
 	free(point);
-	d3ddev->SetStreamSource(0, vertex_buffer, 0, sizeof(fa_VERTEX));	// select the vertex buffer to display
-	d3ddev->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 1);					// copy the vertex buffer to the back buffer
+	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, sizeof(fa_VERTEX)));	// select the vertex buffer to display
+	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 1));					// copy the vertex buffer to the back buffer
 }
 
 /// <summary>draws catmull-rom spline</summary>
@@ -332,13 +345,13 @@ fa_point* CcitafoilView::drawcrs(fa_point* point, UINT _size, UINT _weight)
 			boundery_point[i].location.y = vertex[j].location.y;
 		}
 
-	d3ddev->CreateVertexBuffer(number_of_vertices * sizeof(fa_VERTEX) - sizeof(D3DXVECTOR3), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL);
+	HR_CHECK(d3ddev->CreateVertexBuffer(number_of_vertices * sizeof(fa_VERTEX) - sizeof(D3DXVECTOR3), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL));
 	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);							// lock the vertex buffer
 	memcpy(pVoid, vertex, number_of_vertices * sizeof(fa_VERTEX) - sizeof(D3DXVECTOR3));	// copy the vertices to the locked buffer
 	free(vertex);
 	vertex_buffer->Unlock();		// unlock the vertex buffer
-	d3ddev->SetStreamSource(0, vertex_buffer, 0, sizeof(fa_VERTEX));	// select the vertex buffer to display
-	d3ddev->DrawPrimitive(D3DPT_LINESTRIP, 0, number_of_vertices - 1);	// copy the vertex buffer to the back buffer
+	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, sizeof(fa_VERTEX)));	// select the vertex buffer to display
+	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINESTRIP, 0, number_of_vertices - 1));// copy the vertex buffer to the back buffer
 
 	return boundery_point;
 }
@@ -354,7 +367,7 @@ VOID CcitafoilView::outtextxy(LONG _x, LONG _y, CONST CHAR* txt)
 	RECT FontRect;
 
 	// get text width
-	size_t string_length = strlen(txt);
+	UINT string_length = strlen(txt);
 
 	// set rectangle up
 	FontRect.left = _x;
@@ -409,12 +422,12 @@ VOID CcitafoilView::plist(fa_point* point, UINT _size)
 		);
 	}
 
-	d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL);
+	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL));
 	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
 	memcpy(pVoid, vertex.data(), vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// copy the vertices to the locked buffer
 	vertex_buffer->Unlock();	// unlock the vertex buffer
-	d3ddev->SetStreamSource(0, vertex_buffer, 0, (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// select the vertex buffer to display
-	d3ddev->DrawPrimitive(D3DPT_TRIANGLELIST, 0, UINT(vertex.size()));	// copy the vertex buffer to the back buffer
+	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))));	// select the vertex buffer to display
+	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_TRIANGLELIST, 0, UINT(vertex.size())));	// copy the vertex buffer to the back buffer
 }
 
 // CcitafoilView diagnostics

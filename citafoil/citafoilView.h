@@ -20,8 +20,9 @@
 #define TRIANGLE_UNIT_LENGTH 0.004f // size of triangle side
 #define D3DFVF (D3DFVF_XYZ | D3DFVF_DIFFUSE)
 
-#include <d3d9.h>
-#include "airfoils.h"
+#include <vector>
+#include <Include/d3d9.h>
+#include <Include/d3dx9.h>
 
 class CcitafoilView : public CView
 {

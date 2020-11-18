@@ -194,7 +194,6 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="airfoils.h" />
     <ClInclude Include="citafoil.h" />
     <ClInclude Include="citafoilDoc.h" />
     <ClInclude Include="citafoilView.h" />

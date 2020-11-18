@@ -61,12 +61,13 @@ private:
 	D3DPRESENT_PARAMETERS d3dpp;						// create a struct to hold various device information
 	VOID begindraw();
 	VOID cls();
-	fa_point* drawcrs(std::vector<D3DXVECTOR3>* _plist, UINT _weight);
+	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> drawcrs(std::vector<D3DXVECTOR3>* _plist, UINT _weight);
 	VOID enddraw();
 	VOID line(_In_ FLOAT _x1, _In_ FLOAT _y1, _In_ FLOAT _x2, _In_ FLOAT _y2);
 	VOID outtextxy(LONG _x, LONG _y, CONST CHAR* txt);
 	VOID pset(_In_ FLOAT _x, _In_ FLOAT _y);
 	VOID plist(std::vector<D3DXVECTOR3>* _plist);
+	VOID plist(std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>>* _plist);
 	VOID render();
 	// airfoils
 	std::vector<D3DXVECTOR3> NACA0006 =

@@ -32,6 +32,19 @@
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
+#include <stdio.h>
+#include <iostream>
+
+FILE* g_ic_file_cout_stream; FILE* g_ic_file_cin_stream;
+
+// Success: true , Failure: false
+bool InitConsole()
+{
+	if (!AllocConsole()) { return false; }
+	if (freopen_s(&g_ic_file_cout_stream, "CONOUT$", "w", stdout) != 0) { return false; } // For std::cout 
+	if (freopen_s(&g_ic_file_cin_stream, "CONIN$", "w+", stdin) != 0) { return false; } // For std::cin
+	return true;
+}
 #endif
 
 #pragma comment(lib, "d3d9.lib")
@@ -95,30 +108,44 @@ void CcitafoilView::OnComboChanged()
 	CComboBox* combobox_airfoils = &((((CMainFrame*)AfxGetMainWnd())->m_wndProperties).combobox_airfoils);
 	combobox_airfoils->GetLBText(combobox_airfoils->GetCurSel(), selected_airfoil);
 
+	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> boundary_points;
+
 	cls();
 	begindraw();
 
 	if (selected_airfoil == "NACA-0006")
 	{
-		drawcrs(&NACA0006, 1);
+		boundary_points = drawcrs(&NACA0006, 1);
+#ifdef _DEBUG
+		for (UINT i = 0; i < aaa.size(); ++i)
+			std::cout << "point[" << i << "] = " << aaa.at(i).first.x << '\t' << aaa.at(i).first.y << std::endl;
+#endif
+		palette = D3DCOLOR_XRGB(255, 255, 0);
+		plist(&boundary_points);
 		palette = D3DCOLOR_XRGB(255, 0, 0);
 		plist(&NACA0006);
 	}
 	else if (selected_airfoil == "NACA-0008")
 	{
-		drawcrs(&NACA0008, 1);
+		boundary_points = drawcrs(&NACA0008, 1);
+		palette = D3DCOLOR_XRGB(255, 255, 0);
+		plist(&boundary_points);
 		palette = D3DCOLOR_XRGB(255, 0, 0);
 		plist(&NACA0008);
 	}
 	else if (selected_airfoil == "NACA-0010")
 	{
-		drawcrs(&NACA0010, 1);
+		boundary_points = drawcrs(&NACA0010, 1);
+		palette = D3DCOLOR_XRGB(255, 255, 0);
+		plist(&boundary_points);
 		palette = D3DCOLOR_XRGB(255, 0, 0);
 		plist(&NACA0010);
 	}
 	else if (selected_airfoil == "NACA-2414")
 	{
-		drawcrs(&NACA2414, 1);
+		boundary_points = drawcrs(&NACA2414, 1);
+		palette = D3DCOLOR_XRGB(255, 255, 0);
+		plist(&boundary_points);
 		palette = D3DCOLOR_XRGB(255, 0, 0);
 		plist(&NACA2414);
 	}
@@ -153,11 +180,11 @@ BOOL CcitafoilView::PreCreateWindow(CREATESTRUCT& cs)
 {
 	// TODO: Modify the Window class or styles here by modifying
 	//  the CREATESTRUCT cs
-
+#ifdef _DEBUG
+	InitConsole();
+#endif
 	return CView::PreCreateWindow(cs);
 }
-
-// CcitafoilView drawing
 
 void CcitafoilView::OnDraw(CDC* /*pDC*/)
 {
@@ -285,19 +312,17 @@ VOID CcitafoilView::pset(_In_ FLOAT _x, _In_ FLOAT _y)
 }
 
 /// <summary>draws catmull-rom spline</summary>
-fa_point* CcitafoilView::drawcrs(std::vector<D3DXVECTOR3>* _plist, UINT _weight)
+std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> CcitafoilView::drawcrs(std::vector<D3DXVECTOR3>* _plist, UINT _weight)
 {
 	VOID* pVoid;				// the void pointer
 	UINT i, j, m;				// counter
 	FLOAT k = 1;				// weight counter
-	fa_point* boundery_point;	// array of (x,y) locations of vertex will return using this pointer
 
 	UINT number_of_vertices = _plist->size();							// number of control points
 	number_of_vertices += (number_of_vertices - 4) * _weight + _weight;	// number of control points + interpolated points
 
-	// memory allocation for vertices and boundary_points
+	// memory allocation for vertices
 	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> vertex(number_of_vertices);
-	boundery_point = (fa_point*)malloc(number_of_vertices * sizeof(fa_point));
 
 	// map control point #0 and point #1 to vertex #0 and vertex #1
 	for (i = 0; i <= 1; i++)
@@ -306,9 +331,6 @@ fa_point* CcitafoilView::drawcrs(std::vector<D3DXVECTOR3>* _plist, UINT _weight)
 		vertex.at(i).first.y = _plist->at(i).y;
 		vertex.at(i).first.z = 0;
 		vertex.at(i).second = palette;
-
-		boundery_point[i].location.x = vertex.at(i).first.x;
-		boundery_point[i].location.y = vertex.at(i).first.y;
 	}
 
 	// map control point #2 to point #n-1 to vertex
@@ -318,20 +340,14 @@ fa_point* CcitafoilView::drawcrs(std::vector<D3DXVECTOR3>* _plist, UINT _weight)
 		vertex.at(i).first.y = _plist->at(j).y;
 		vertex.at(i).first.z = 0;
 		vertex.at(i).second = palette;
-
-		boundery_point[i].location.x = vertex.at(i).first.x;
-		boundery_point[i].location.y = vertex.at(i).first.y;
 	}
 
-	// map control point #n to vertex and boundary_point
+	// map control point #n to vertex
 	i -= _weight;
 	vertex.at(i).first.x = _plist->back().x;
 	vertex.at(i).first.y = _plist->back().y;
 	vertex.at(i).first.z = 0;
 	vertex.at(i).second = palette;
-
-	boundery_point[i].location.x = vertex.at(i).first.x;
-	boundery_point[i].location.y = vertex.at(i).first.y;
 
 	// point #1 to point #n-1 catmull-rom interpolation
 	for (i = 1, m = 0; i < number_of_vertices - 2; i += _weight + 1, m++)
@@ -339,9 +355,6 @@ fa_point* CcitafoilView::drawcrs(std::vector<D3DXVECTOR3>* _plist, UINT _weight)
 		{
 			D3DXVec3CatmullRom(&vertex.at(j).first, &_plist->at(m), &_plist->at(m + 1), &_plist->at(m + 2), &_plist->at(m + 3), k / (_weight + 1));
 			vertex.at(j).second = palette;
-
-			boundery_point[i].location.x = vertex.at(j).first.x;
-			boundery_point[i].location.y = vertex.at(j).first.x;
 		}
 
 	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL));
@@ -351,7 +364,7 @@ fa_point* CcitafoilView::drawcrs(std::vector<D3DXVECTOR3>* _plist, UINT _weight)
 	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, sizeof(fa_VERTEX)));	// select the vertex buffer to display
 	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINESTRIP, 0, number_of_vertices - 1));// copy the vertex buffer to the back buffer
 
-	return boundery_point;
+	return vertex;
 }
 
 /// <summary>draws txt to screen at location (x,y)</summary>
@@ -419,6 +432,56 @@ VOID CcitafoilView::plist(std::vector<D3DXVECTOR3>* _plist)
 			)
 		);
 	}
+
+	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL));
+	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
+	memcpy(pVoid, vertex.data(), vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// copy the vertices to the locked buffer
+	vertex_buffer->Unlock();	// unlock the vertex buffer
+	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))));	// select the vertex buffer to display
+	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_TRIANGLELIST, 0, UINT(vertex.size())));	// copy the vertex buffer to the back buffer
+}
+
+VOID CcitafoilView::plist(std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>>* _plist)
+{
+	UINT i;		// counter
+	VOID* pVoid;// the void pointer
+	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> vertex;
+
+	// map control point #0 to point #n to vertex
+	// plist->size() = number of control points
+	for (i = 0; i < _plist->size(); i++)
+	{
+		// 1.155 = sqrt(16/3) / 2
+		vertex.push_back(
+			std::pair(
+				D3DXVECTOR3(
+					FLOAT(_plist->at(i).first.x + 1.155f * TRIANGLE_UNIT_LENGTH)
+					, FLOAT(_plist->at(i).first.y - TRIANGLE_UNIT_LENGTH)
+					, FLOAT(0))
+				, palette
+			)
+		);
+
+		vertex.push_back(
+			std::pair(
+				D3DXVECTOR3(
+					FLOAT(_plist->at(i).first.x - 1.155f * TRIANGLE_UNIT_LENGTH)
+					, FLOAT(_plist->at(i).first.y - TRIANGLE_UNIT_LENGTH)
+					, FLOAT(0))
+				, palette
+			)
+		);
+
+		vertex.push_back(
+			std::pair(
+				D3DXVECTOR3(
+					FLOAT(_plist->at(i).first.x)
+					, FLOAT(_plist->at(i).first.y + TRIANGLE_UNIT_LENGTH)
+					, FLOAT(0))
+				, palette
+			)
+		);
+}
 
 	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL));
 	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer

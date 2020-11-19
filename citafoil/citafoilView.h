@@ -35,6 +35,7 @@ public:
 #endif
 	
 private:
+	VOID terminate();
 	// GUI
 	DECLARE_DYNCREATE(CcitafoilView)
 	void OnComboChanged();
@@ -46,7 +47,6 @@ private:
 	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	DECLARE_MESSAGE_MAP()
-
 	// DirectX 9
 	struct fa_VERTEX
 	{

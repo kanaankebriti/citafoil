@@ -60,7 +60,7 @@ LPCWSTR get_error_string_d3d9(HRESULT hr)
 }
 
 #define ERROR_MSG(X) AfxMessageBox(X, MB_ICONSTOP | MB_OK);
-#define HR_CHECK(X) if (FAILED(X)) { ERROR_MSG(get_error_string_d3d9(X)); __debugbreak(); }
+#define HR_CHECK(X) if (FAILED(X)) { ERROR_MSG(get_error_string_d3d9(X)); __debugbreak(); terminate(); }
 
 
 IMPLEMENT_DYNCREATE(CcitafoilView, CView)
@@ -84,18 +84,33 @@ CcitafoilView::~CcitafoilView()
 	//d3d->Release();
 }
 
+VOID CcitafoilView::terminate()
+{
+	ASSERT(AfxGetMainWnd() != NULL);
+	AfxGetMainWnd()->SendMessage(WM_CLOSE);
+}
+
 void CcitafoilView::OnInitialUpdate()
 {
 	// init d3d9
 	d3d = Direct3DCreate9(D3D_SDK_VERSION);		// create the Direct3D interface
+	if (!d3d)
+	{
+		ERROR_MSG(L"Failed to initialize Direct3D 9 - the application was built against the correct header files.");
+		terminate();
+	}
 	ZeroMemory(&d3dpp, sizeof(d3dpp));
+	d3dpp.BackBufferWidth = 640;
+	d3dpp.BackBufferHeight = 480;
+	d3dpp.BackBufferFormat = D3DFMT_A8R8G8B8;
+	d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
 	d3dpp.Windowed = TRUE;						// program windowed, not fullscreen
 	d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;	// discard old frames
 	d3dpp.hDeviceWindow = this->m_hWnd;			// set the window to be used by Direct3D
 	d3dpp.MultiSampleType = D3DMULTISAMPLE_NONMASKABLE;		// enable anti-aliasing
 	d3dpp.MultiSampleQuality = 1;							// antialiasing quality
 	// create a device class using this information and the info from the d3dpp struct
-	d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, this->m_hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dpp, &d3ddev);
+	HR_CHECK(d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, this->m_hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dpp, &d3ddev));
 
 	// visible back side of primitives
 	//HR_CHECK(d3ddev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE));

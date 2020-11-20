@@ -164,6 +164,14 @@ void CcitafoilView::OnComboChanged()
 		palette = D3DCOLOR_XRGB(255, 0, 0);
 		plist(&NACA2414);
 	}
+	else if (selected_airfoil == "NACA-23012")
+	{
+		boundary_points = drawcrs(&NACA23012, 1);
+		palette = D3DCOLOR_XRGB(255, 255, 0);
+		plist(&boundary_points);
+		palette = D3DCOLOR_XRGB(255, 0, 0);
+		plist(&NACA23012);
+	}
 	palette = D3DCOLOR_XRGB(0, 0, 0);
 	enddraw();
 	render();

@@ -75,7 +75,7 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	rectDummy.SetRectEmpty();
 
 	// Create airfoil selection combobox
-	const DWORD dwViewStyle = WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_BORDER | CBS_SORT | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+	const DWORD dwViewStyle = WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_BORDER | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
 
 	if (!combobox_airfoils.Create(dwViewStyle, rectDummy, this, IDR_COMBOBOX_AIRFOILS))
 	{
@@ -87,6 +87,7 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	combobox_airfoils.AddString(_T("NACA-0008"));
 	combobox_airfoils.AddString(_T("NACA-0010"));
 	combobox_airfoils.AddString(_T("NACA-2414"));
+	combobox_airfoils.AddString(_T("NACA-23012"));
 	combobox_airfoils.SetCurSel(0);
 
 	CRect rectCombo;

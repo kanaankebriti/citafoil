@@ -25,7 +25,7 @@
 #define ID_VIEW_CUSTOMIZE			126
 #define IDR_MAINFRAME				128
 #define IDR_MAINFRAME_256			129
-#define IDR_citafoilTYPE				130
+#define IDR_citafoilTYPE			130
 #define ID_VIEW_PROPERTIESWND		150
 #define ID_SORTPROPERTIES			151
 #define ID_PROPERTIES1				152
@@ -37,7 +37,10 @@
 #define IDR_PROPERTIES				183
 #define IDB_PROPERTIES_HC			184
 #define IDS_EDIT_MENU				306
-#define IDR_COMBOBOX_AIRFOILS		400
+
+#define IDR_COMBOBOX_AIRFOILS				400
+#define IDR_EDIT_INTERPOLATION_LEVEL		401
+#define IDR_SPINBTN_INTERPOLATION_LEVEL		402
 
 // Next default values for new objects
 //

@@ -38,7 +38,9 @@ private:
 	VOID terminate();
 	// GUI
 	DECLARE_DYNCREATE(CcitafoilView)
-	void OnComboChanged();
+	CString selected_airfoil;
+	void On_combobox_airfoils_changed();
+	void On_edit_interpolation_level_changed();
 	virtual void OnInitialUpdate();
 	CcitafoilDoc* GetDocument() const;
 	virtual void OnDraw(CDC* pDC);  // overridden to draw this view
@@ -65,6 +67,7 @@ private:
 	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> drawcrs(std::vector<D3DXVECTOR3>* _plist, UINT _weight);
 	VOID enddraw();
 	VOID line(_In_ FLOAT _x1, _In_ FLOAT _y1, _In_ FLOAT _x2, _In_ FLOAT _y2);
+	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> linter(std::vector<D3DXVECTOR3>* _plist);
 	VOID outtextxy(LONG _x, LONG _y, CONST CHAR* txt);
 	VOID pset(_In_ FLOAT _x, _In_ FLOAT _y);
 	VOID plist(std::vector<D3DXVECTOR3>* _plist);

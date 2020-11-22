@@ -16,6 +16,9 @@
 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░*/
 #pragma once
 
+#define MIN_INTERPOLATION_LEVEL 0
+#define MAX_INTERPOLATION_LEVEL 3
+#define FREE_SPACE_HEIGHT		5
 class CPropertiesToolBar : public CMFCToolBar
 {
 public:
@@ -36,12 +39,15 @@ public:
 	VOID SetTarget(CWnd* m_cwnd);
 	// GUI elements access from directx window
 	CComboBox combobox_airfoils;
+	CEdit edit_interpolation_level;
 private:
 	UINT	combobox_airfoils_height = 0;
+	UINT	edit_interpolation_level_height = 0;
 	CWnd*	message_target = NULL;
 	UINT	m_nComboHeight;
 	CFont	m_fntPropList;
 	CPropertiesToolBar m_wndToolBar;
+	CSpinButtonCtrl spinbtn_interpolation_level;
 	DECLARE_MESSAGE_MAP()
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSize(UINT nType, int cx, int cy);

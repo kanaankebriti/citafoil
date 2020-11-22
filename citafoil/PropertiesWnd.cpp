@@ -59,6 +59,8 @@ void CPropertiesWnd::AdjustLayout()
 
 	// set airfoil selection combobox
 	combobox_airfoils.SetWindowPos(nullptr, rectClient.left, rectClient.top, rectClient.Width(), combobox_airfoils_height, SWP_NOACTIVATE | SWP_NOZORDER);
+	edit_interpolation_level.SetWindowPos(nullptr, rectClient.left, rectClient.top + combobox_airfoils_height + FREE_SPACE_HEIGHT, 30, edit_interpolation_level_height, SWP_NOACTIVATE | SWP_NOZORDER);
+	spinbtn_interpolation_level.SetWindowPos(nullptr, rectClient.left + 30, rectClient.top + combobox_airfoils_height + FREE_SPACE_HEIGHT, 30, edit_interpolation_level_height, SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 VOID CPropertiesWnd::SetTarget(CWnd* m_cwnd)
@@ -74,8 +76,8 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	CRect rectDummy;
 	rectDummy.SetRectEmpty();
 
-	// Create airfoil selection combobox
-	const DWORD dwViewStyle = WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST | WS_BORDER | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+	// airfoil selection combobox
+	DWORD dwViewStyle = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBS_DROPDOWNLIST;
 
 	if (!combobox_airfoils.Create(dwViewStyle, rectDummy, this, IDR_COMBOBOX_AIRFOILS))
 	{
@@ -90,9 +92,37 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	combobox_airfoils.AddString(_T("NACA-23012"));
 	combobox_airfoils.SetCurSel(0);
 
-	CRect rectCombo;
-	combobox_airfoils.GetClientRect(&rectCombo);
-	combobox_airfoils_height = rectCombo.Height();
+	CRect rect;
+	combobox_airfoils.GetClientRect(&rect);
+	combobox_airfoils_height = rect.Height();
+
+	// interpolation level edit/buddy
+	dwViewStyle = WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER | ES_READONLY;
+	rectDummy.SetRectEmpty();
+
+	if (!edit_interpolation_level.Create(dwViewStyle, rectDummy, this, IDR_EDIT_INTERPOLATION_LEVEL))
+	{
+		TRACE0("Failed to create Interpolation Level Spinbutton \n");
+		return -1;
+	}
+
+	edit_interpolation_level.GetRect(&rect);
+	edit_interpolation_level_height = rect.Height();
+	edit_interpolation_level_height += 4;	// for showing selected text properly
+
+	// interpolation level spin button
+	dwViewStyle = WS_CHILD | WS_VISIBLE | UDS_ALIGNRIGHT | UDS_SETBUDDYINT;
+	rectDummy.SetRectEmpty();
+
+	if (!spinbtn_interpolation_level.Create(dwViewStyle, rectDummy, this, IDR_SPINBTN_INTERPOLATION_LEVEL))
+	{
+		TRACE0("Failed to create Interpolation Level Spinbutton \n");
+		return -1;
+	}
+	
+	spinbtn_interpolation_level.SetBuddy(&edit_interpolation_level);	// attach spin to edit box
+	spinbtn_interpolation_level.SetRange(MIN_INTERPOLATION_LEVEL, MAX_INTERPOLATION_LEVEL);
+	spinbtn_interpolation_level.SetPos(0);	// default interpolation level
 
 	SetupFont();
 	AdjustLayout();
@@ -144,4 +174,5 @@ VOID CPropertiesWnd::SetupFont()
 	m_fntPropList.CreateFontIndirect(&lf);
 
 	combobox_airfoils.SetFont(&m_fntPropList);
+	edit_interpolation_level.SetFont(&m_fntPropList);
 }

@@ -68,7 +68,8 @@ IMPLEMENT_DYNCREATE(CcitafoilView, CView)
 BEGIN_MESSAGE_MAP(CcitafoilView, CView)
 	ON_WM_CONTEXTMENU()
 	ON_WM_RBUTTONUP()
-	ON_CBN_SELENDOK(IDR_COMBOBOX_AIRFOILS, &CcitafoilView::OnComboChanged)
+	ON_CBN_SELENDOK(IDR_COMBOBOX_AIRFOILS, &CcitafoilView::On_combobox_airfoils_changed)
+	ON_EN_CHANGE(IDR_EDIT_INTERPOLATION_LEVEL, &CcitafoilView::On_edit_interpolation_level_changed)
 	ON_WM_MOUSEWHEEL()
 	ON_WM_CREATE()
 END_MESSAGE_MAP()
@@ -107,22 +108,37 @@ void CcitafoilView::OnInitialUpdate()
 	d3dpp.Windowed = TRUE;						// program windowed, not fullscreen
 	d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;	// discard old frames
 	d3dpp.hDeviceWindow = this->m_hWnd;			// set the window to be used by Direct3D
-	d3dpp.MultiSampleType = D3DMULTISAMPLE_NONMASKABLE;		// enable anti-aliasing
-	d3dpp.MultiSampleQuality = 1;							// antialiasing quality
+	//d3dpp.MultiSampleType = D3DMULTISAMPLE_NONMASKABLE;		// enable anti-aliasing
+	//d3dpp.MultiSampleQuality = 1;							// antialiasing quality
 	// create a device class using this information and the info from the d3dpp struct
 	HR_CHECK(d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, this->m_hWnd, D3DCREATE_HARDWARE_VERTEXPROCESSING, &d3dpp, &d3ddev));
 
+	if (!d3ddev)
+	{
+		ERROR_MSG(L"Failed to initialize Direct3D 9 Device.");
+		terminate();
+	}
 	// visible back side of primitives
 	//HR_CHECK(d3ddev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE));
 }
 
-void CcitafoilView::OnComboChanged()
+void CcitafoilView::On_combobox_airfoils_changed()
 {
 	// retrieve selected airfoil
-	CString selected_airfoil;
 	CComboBox* combobox_airfoils = &((((CMainFrame*)AfxGetMainWnd())->m_wndProperties).combobox_airfoils);
 	combobox_airfoils->GetLBText(combobox_airfoils->GetCurSel(), selected_airfoil);
 
+	On_edit_interpolation_level_changed();
+}
+
+void CcitafoilView::On_edit_interpolation_level_changed()
+{
+	// retrieve selected interpolation level
+	CEdit* edit_interpolation_level = &((((CMainFrame*)AfxGetMainWnd())->m_wndProperties).edit_interpolation_level);
+	CString interpolation_level_str;
+	edit_interpolation_level->GetWindowTextW(interpolation_level_str);
+	int interpolation_level = _ttoi(interpolation_level_str);
+	// calculate interpolated airfoil and draw it
 	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> boundary_points;
 
 	cls();
@@ -130,11 +146,10 @@ void CcitafoilView::OnComboChanged()
 
 	if (selected_airfoil == "NACA-0006")
 	{
-		boundary_points = drawcrs(&NACA0006, 1);
-#ifdef _DEBUG
-		for (UINT i = 0; i < aaa.size(); ++i)
-			std::cout << "point[" << i << "] = " << aaa.at(i).first.x << '\t' << aaa.at(i).first.y << std::endl;
-#endif
+		if(!interpolation_level)
+			boundary_points = linter(&NACA0006);
+		else
+			boundary_points = drawcrs(&NACA0006, interpolation_level);
 		palette = D3DCOLOR_XRGB(255, 255, 0);
 		plist(&boundary_points);
 		palette = D3DCOLOR_XRGB(255, 0, 0);
@@ -142,7 +157,10 @@ void CcitafoilView::OnComboChanged()
 	}
 	else if (selected_airfoil == "NACA-0008")
 	{
-		boundary_points = drawcrs(&NACA0008, 1);
+		if (!interpolation_level)
+			boundary_points = linter(&NACA0008);
+		else
+			boundary_points = drawcrs(&NACA0008, interpolation_level);
 		palette = D3DCOLOR_XRGB(255, 255, 0);
 		plist(&boundary_points);
 		palette = D3DCOLOR_XRGB(255, 0, 0);
@@ -150,7 +168,10 @@ void CcitafoilView::OnComboChanged()
 	}
 	else if (selected_airfoil == "NACA-0010")
 	{
-		boundary_points = drawcrs(&NACA0010, 1);
+		if (!interpolation_level)
+			boundary_points = linter(&NACA0010);
+		else
+			boundary_points = drawcrs(&NACA0010, interpolation_level);
 		palette = D3DCOLOR_XRGB(255, 255, 0);
 		plist(&boundary_points);
 		palette = D3DCOLOR_XRGB(255, 0, 0);
@@ -158,7 +179,10 @@ void CcitafoilView::OnComboChanged()
 	}
 	else if (selected_airfoil == "NACA-2414")
 	{
-		boundary_points = drawcrs(&NACA2414, 1);
+		if (!interpolation_level)
+			boundary_points = linter(&NACA2414);
+		else
+			boundary_points = drawcrs(&NACA2414, interpolation_level);
 		palette = D3DCOLOR_XRGB(255, 255, 0);
 		plist(&boundary_points);
 		palette = D3DCOLOR_XRGB(255, 0, 0);
@@ -166,13 +190,17 @@ void CcitafoilView::OnComboChanged()
 	}
 	else if (selected_airfoil == "NACA-23012")
 	{
-		boundary_points = drawcrs(&NACA23012, 1);
+		if (!interpolation_level)
+			boundary_points = linter(&NACA23012);
+		else
+			boundary_points = drawcrs(&NACA23012, interpolation_level);
 		palette = D3DCOLOR_XRGB(255, 255, 0);
 		plist(&boundary_points);
 		palette = D3DCOLOR_XRGB(255, 0, 0);
 		plist(&NACA23012);
 	}
 	palette = D3DCOLOR_XRGB(0, 0, 0);
+
 	enddraw();
 	render();
 }
@@ -195,7 +223,7 @@ BOOL CcitafoilView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 		&D3DXVECTOR3(0.0f, 1.0f, 0.0f));	// the up direction
 	HR_CHECK(d3ddev->SetTransform(D3DTS_VIEW, &matView));	// set the view transform to matView
 
-	OnComboChanged();
+	On_combobox_airfoils_changed();
 	return TRUE;
 }
 
@@ -250,7 +278,7 @@ void CcitafoilView::OnDraw(CDC* /*pDC*/)
 	// turn off the 3D lighting
 	HR_CHECK(d3ddev->SetRenderState(D3DRS_LIGHTING, FALSE));
 	// clear output
-	OnComboChanged();
+	On_combobox_airfoils_changed();
 }
 
 void CcitafoilView::OnRButtonUp(UINT /* nFlags */, CPoint point)
@@ -411,6 +439,29 @@ VOID CcitafoilView::outtextxy(LONG _x, LONG _y, CONST CHAR* txt)
 
 	// draw final text
 	font->DrawTextA(NULL, LPCSTR(txt), -1, &FontRect, DT_CENTER, palette);
+}
+
+std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> CcitafoilView::linter(std::vector<D3DXVECTOR3>* _plist)
+{
+	UINT i;		// counter
+	VOID* pVoid;// the void pointer
+	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> vertex;
+
+	// map control point #0 to point #n to vertex
+	for (i = 1; i < _plist->size(); i++)
+	{
+		vertex.push_back(std::pair(D3DXVECTOR3(FLOAT(_plist->at(i - 1).x), FLOAT(_plist->at(i - 1).y), FLOAT(0)), palette));
+		vertex.push_back(std::pair(D3DXVECTOR3(FLOAT(_plist->at(i).x), FLOAT(_plist->at(i).y), FLOAT(0)), palette));
+	}
+
+	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL));
+	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
+	memcpy(pVoid, vertex.data(), vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// copy the vertices to the locked buffer
+	vertex_buffer->Unlock();	// unlock the vertex buffer
+	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))));	// select the vertex buffer to display
+	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINELIST, 0, UINT(vertex.size())));	// copy the vertex buffer to the back buffer
+
+	return vertex;
 }
 
 /// <summary>draws list of points</summary>

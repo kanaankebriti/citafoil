@@ -36,6 +36,7 @@ public:
 	
 private:
 	VOID terminate();
+	VOID bisect(std::vector<D3DXVECTOR3>* _plist);
 	// GUI
 	DECLARE_DYNCREATE(CcitafoilView)
 	CString selected_airfoil;
@@ -45,7 +46,7 @@ private:
 	CcitafoilDoc* GetDocument() const;
 	virtual void OnDraw(CDC* pDC);  // overridden to draw this view
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
+	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);	// zoom effect
 	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	DECLARE_MESSAGE_MAP()
@@ -64,10 +65,10 @@ private:
 	D3DPRESENT_PARAMETERS d3dpp;						// create a struct to hold various device information
 	VOID begindraw();
 	VOID cls();
-	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> drawcrs(std::vector<D3DXVECTOR3>* _plist, UINT _weight);
+	std::vector<D3DXVECTOR3> drawcrs(std::vector<D3DXVECTOR3>* _plist, UINT _weight);
 	VOID enddraw();
 	VOID line(_In_ FLOAT _x1, _In_ FLOAT _y1, _In_ FLOAT _x2, _In_ FLOAT _y2);
-	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> linter(std::vector<D3DXVECTOR3>* _plist);
+	VOID linter(std::vector<D3DXVECTOR3>* _plist);
 	VOID outtextxy(LONG _x, LONG _y, CONST CHAR* txt);
 	VOID pset(_In_ FLOAT _x, _In_ FLOAT _y);
 	VOID plist(std::vector<D3DXVECTOR3>* _plist);
@@ -100,7 +101,9 @@ private:
 		D3DXVECTOR3(FLOAT(0.0500),FLOAT(-0.01777),FLOAT(0.00000)),
 		D3DXVECTOR3(FLOAT(0.0750),FLOAT(-0.02100),FLOAT(0.00000)),
 		D3DXVECTOR3(FLOAT(0.1000),FLOAT(-0.02341),FLOAT(0.00000)),
+		D3DXVECTOR3(FLOAT(0.1500),FLOAT(-0.02673),FLOAT(0.00000)),
 		D3DXVECTOR3(FLOAT(0.2000),FLOAT(-0.02869),FLOAT(0.00000)),
+		D3DXVECTOR3(FLOAT(0.2500),FLOAT(-0.02971),FLOAT(0.00000)),
 		D3DXVECTOR3(FLOAT(0.3000),FLOAT(-0.03001),FLOAT(0.00000)),
 		D3DXVECTOR3(FLOAT(0.4000),FLOAT(-0.02902),FLOAT(0.00000)),
 		D3DXVECTOR3(FLOAT(0.5000),FLOAT(-0.02647),FLOAT(0.00000)),

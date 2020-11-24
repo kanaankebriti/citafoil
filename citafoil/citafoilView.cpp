@@ -17,6 +17,7 @@
 #include "pch.h"
 #include "framework.h"
 #include <Windows.h>
+#include <algorithm>
 #include <vector>
 #include <string>
 #include <Include/DxErr.h>
@@ -131,6 +132,127 @@ void CcitafoilView::On_combobox_airfoils_changed()
 	On_edit_interpolation_level_changed();
 }
 
+bool compareByX(D3DXVECTOR3& p1, D3DXVECTOR3& p2)
+{
+	return p1.x < p2.x;
+}
+
+/// <summary>perform bisection for each quadrilateral in boundary points</summary>
+VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
+{
+	std::vector<D3DXVECTOR3> upper_surface, lower_surface;
+	float x1, x2, x3, x4, y1, y2, y3, y4;
+	USHORT i = 1;	// from 1 in order to exclude (1,0)
+
+	while (_plist->at(i).x != 0)
+	{
+		upper_surface.push_back(_plist->at(i));
+		i++;
+	}
+
+	i++;	// exclude (0,0)
+
+	while (_plist->at(i).x != 1)
+	{
+		lower_surface.push_back(_plist->at(i));
+		i++;
+	}
+
+	std::sort(upper_surface.begin(), upper_surface.end(), compareByX);
+	std::sort(lower_surface.begin(), lower_surface.end(), compareByX);
+	
+	for (USHORT i = 1; i < max(upper_surface.size(), lower_surface.size()) - 2; i++)
+	{
+		// rearenge point of each quadrilateral such that
+		// upper left	(x1,y1)
+		// lower left	(x2,y2)
+		// upper right	(x3,y3)
+		// lower right	(x4,y4)
+
+		if (i < upper_surface.size() - 1)
+		{
+			x1 = upper_surface.at(i).x;
+			y1 = upper_surface.at(i).y;
+			x3 = upper_surface.at(i + 1).x;
+			y3 = upper_surface.at(i + 1).y;
+		}
+		// in case of upper_surface out of bound
+		// consider only last two control points
+		else
+		{
+			x1 = upper_surface.at(upper_surface.size() - 2).x;
+			y1 = upper_surface.at(upper_surface.size() - 2).y;
+			x3 = upper_surface.at(upper_surface.size() - 1).x;
+			y3 = upper_surface.at(upper_surface.size() - 1).y;
+		}
+
+		if (i < lower_surface.size())
+		{
+			x2 = lower_surface.at(i).x;
+			y2 = lower_surface.at(i).y;
+			x4 = lower_surface.at(i + 1).x;
+			y4 = lower_surface.at(i + 1).y;
+		}
+		// in case of lower_surface out of bound
+		// consider only last two control points
+		else
+		{
+			x2 = lower_surface.at(upper_surface.size() - 2).x;
+			y2 = lower_surface.at(upper_surface.size() - 2).y;
+			x4 = lower_surface.at(upper_surface.size() - 1).x;
+			y4 = lower_surface.at(upper_surface.size() - 1).y;
+		}
+
+		float A1 = y1 - y3;
+		float A2 = y2 - y4;
+		float B1 = x3 - x1;
+		float B2 = x4 - x2;
+		float C1 = -A1 * x1 - B1 * y1;
+		float C2 = -A2 * x2 - B1 * y2;
+		float R = sqrt((pow(A2, 2) + pow(B2, 2)) / (pow(A1, 2) + pow(B1, 2)));
+
+		float A3 = y1 - y2;
+		float A4 = y3 - y4;
+		float B3 = x2 - x1;
+		float B4 = x4 - x3;
+		float C3 = A3 * x1 + B3 * y1;
+		float C4 = A4 * x3 + B4 * y3;
+
+		float x5, x6, y5, y6;
+
+		if ((A1 * A2 + B1 * B2) > 0)
+		{
+			x5 = (C3 * (R * B1 + B2) + B3 * (C2 + R * C1)) / (A3 * (R * B1 + B2) - B3 * (R * A1 + A2));
+			y5 = (-A3 * (C2 + R * C1) - C3 * (R * A1 + A2)) / (A3 * (R * B1 + B2) - B3 * (R * A1 + A2));
+			x6 = (C4 * (R * B1 + B2) + B4 * (C2 + R * C1)) / (A4 * (R * B1 + B2) - B4 * (R * A1 + A2));
+			y6 = (-A4 * (C2 + R * C1) - C4 * (R * A1 + A2)) / (A4 * (R * B1 + B2) - B4 * (R * A1 + A2));
+		}
+		else
+		{
+			x5 = (C3 * (R * B1 - B2) - B3 * (C2 - R * C1)) / (A3 * (R * B1 - B2) - B3 * (R * A1 - A2));
+			y5 = (A3 * (C2 - R * C1) - C3 * (R * A1 - A2)) / (A3 * (R * B1 - B2) - B3 * (R * A1 - A2));
+			x6 = (C4 * (R * B1 - B2) - B4 * (C2 - R * C1)) / (A4 * (R * B1 - B2) - B4 * (R * A1 - A2));
+			y6 = (A4 * (C2 - R * C1) - C4 * (R * A1 - A2)) / (A4 * (R * B1 - B2) - B4 * (R * A1 - A2));
+		}
+
+		begindraw();
+		palette = D3DCOLOR_XRGB(255, 0, 0);
+		line(x5, y5, x6, y6);
+		/*
+		palette = D3DCOLOR_XRGB(0, 255, 0);
+		line(x1, y1, x2, y2);
+		line(x3, y3, x4, y4);
+		palette = D3DCOLOR_XRGB(0, 0, 255);
+		line(x1, y1, x3, y3);
+		palette = D3DCOLOR_XRGB(0, 255, 255);
+		line(x2, y2, x4, y4);
+		*/
+		enddraw();
+		render();
+	}
+	palette = D3DCOLOR_XRGB(0, 0, 0);
+}
+
 void CcitafoilView::On_edit_interpolation_level_changed()
 {
 	// retrieve selected interpolation level
@@ -138,16 +260,20 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 	CString interpolation_level_str;
 	edit_interpolation_level->GetWindowTextW(interpolation_level_str);
 	int interpolation_level = _ttoi(interpolation_level_str);
+
 	// calculate interpolated airfoil and draw it
-	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> boundary_points;
+	std::vector<D3DXVECTOR3> boundary_points;
 
 	cls();
 	begindraw();
 
 	if (selected_airfoil == "NACA-0006")
 	{
-		if(!interpolation_level)
-			boundary_points = linter(&NACA0006);
+		if (!interpolation_level)
+		{
+			boundary_points = NACA0006;
+			linter(&NACA0006);
+		}
 		else
 			boundary_points = drawcrs(&NACA0006, interpolation_level);
 		palette = D3DCOLOR_XRGB(255, 255, 0);
@@ -158,7 +284,10 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 	else if (selected_airfoil == "NACA-0008")
 	{
 		if (!interpolation_level)
-			boundary_points = linter(&NACA0008);
+		{
+			boundary_points = NACA0008;
+			linter(&NACA0008);
+		}
 		else
 			boundary_points = drawcrs(&NACA0008, interpolation_level);
 		palette = D3DCOLOR_XRGB(255, 255, 0);
@@ -169,7 +298,10 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 	else if (selected_airfoil == "NACA-0010")
 	{
 		if (!interpolation_level)
-			boundary_points = linter(&NACA0010);
+		{
+			boundary_points = NACA0010;
+			linter(&NACA0010);
+		}
 		else
 			boundary_points = drawcrs(&NACA0010, interpolation_level);
 		palette = D3DCOLOR_XRGB(255, 255, 0);
@@ -180,7 +312,10 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 	else if (selected_airfoil == "NACA-2414")
 	{
 		if (!interpolation_level)
-			boundary_points = linter(&NACA2414);
+		{
+			boundary_points = NACA2414;
+			linter(&NACA2414);
+		}
 		else
 			boundary_points = drawcrs(&NACA2414, interpolation_level);
 		palette = D3DCOLOR_XRGB(255, 255, 0);
@@ -191,7 +326,10 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 	else if (selected_airfoil == "NACA-23012")
 	{
 		if (!interpolation_level)
-			boundary_points = linter(&NACA23012);
+		{
+			boundary_points = NACA23012;
+			linter(&NACA23012);
+		}
 		else
 			boundary_points = drawcrs(&NACA23012, interpolation_level);
 		palette = D3DCOLOR_XRGB(255, 255, 0);
@@ -203,6 +341,8 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 
 	enddraw();
 	render();
+
+	bisect(&boundary_points);
 }
 
 BOOL CcitafoilView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
@@ -358,12 +498,12 @@ VOID CcitafoilView::pset(_In_ FLOAT _x, _In_ FLOAT _y)
 	memcpy(pVoid, &point, 3 * sizeof(fa_VERTEX));		// copy the vertices to the locked buffer
 	vertex_buffer->Unlock();							// unlock the vertex buffer
 	free(point);
-	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, sizeof(fa_VERTEX)));	// select the vertex buffer to display
+	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, 3 * sizeof(fa_VERTEX)));	// select the vertex buffer to display
 	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 1));					// copy the vertex buffer to the back buffer
 }
 
 /// <summary>draws catmull-rom spline</summary>
-std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> CcitafoilView::drawcrs(std::vector<D3DXVECTOR3>* _plist, UINT _weight)
+std::vector<D3DXVECTOR3> CcitafoilView::drawcrs(std::vector<D3DXVECTOR3>* _plist, UINT _weight)
 {
 	VOID* pVoid;				// the void pointer
 	UINT i, j, m;				// counter
@@ -372,8 +512,9 @@ std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> CcitafoilView::drawcrs(std::vector
 	UINT number_of_vertices = _plist->size();							// number of control points
 	number_of_vertices += (number_of_vertices - 4) * _weight + _weight;	// number of control points + interpolated points
 
-	// memory allocation for vertices
+	// memory allocation for vertices and boundary points (return)
 	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> vertex(number_of_vertices);
+	std::vector<D3DXVECTOR3> boundary_points;
 
 	// map control point #0 and point #1 to vertex #0 and vertex #1
 	for (i = 0; i <= 1; i++)
@@ -412,10 +553,18 @@ std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> CcitafoilView::drawcrs(std::vector
 	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);							// lock the vertex buffer
 	memcpy(pVoid, vertex.data(), vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// copy the vertices to the locked buffer
 	vertex_buffer->Unlock();		// unlock the vertex buffer
-	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, sizeof(fa_VERTEX)));	// select the vertex buffer to display
+	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// select the vertex buffer to display
 	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINESTRIP, 0, number_of_vertices - 1));// copy the vertex buffer to the back buffer
 
-	return vertex;
+	// vertex.first contains (x,y,z) and that is what we want as return
+	for (i = 0; i < vertex.size(); i++)
+	{
+		if (vertex.at(i).first.x < 0)
+			continue;
+		boundary_points.push_back(vertex.at(i).first);
+	}
+
+	return boundary_points;
 }
 
 /// <summary>draws txt to screen at location (x,y)</summary>
@@ -441,7 +590,7 @@ VOID CcitafoilView::outtextxy(LONG _x, LONG _y, CONST CHAR* txt)
 	font->DrawTextA(NULL, LPCSTR(txt), -1, &FontRect, DT_CENTER, palette);
 }
 
-std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> CcitafoilView::linter(std::vector<D3DXVECTOR3>* _plist)
+VOID CcitafoilView::linter(std::vector<D3DXVECTOR3>* _plist)
 {
 	UINT i;		// counter
 	VOID* pVoid;// the void pointer
@@ -460,8 +609,6 @@ std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> CcitafoilView::linter(std::vector<
 	vertex_buffer->Unlock();	// unlock the vertex buffer
 	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))));	// select the vertex buffer to display
 	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINELIST, 0, UINT(vertex.size())));	// copy the vertex buffer to the back buffer
-
-	return vertex;
 }
 
 /// <summary>draws list of points</summary>

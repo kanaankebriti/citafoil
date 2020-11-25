@@ -17,6 +17,7 @@
 #pragma once
 
 #define WHEEL_ZOOM_SPEED 0.02f
+#define CAMERA_MOVEMENT_STEP 0.05f
 #define TRIANGLE_UNIT_LENGTH 0.004f // size of triangle side
 #define D3DFVF (D3DFVF_XYZ | D3DFVF_DIFFUSE)
 
@@ -46,6 +47,7 @@ private:
 	CcitafoilDoc* GetDocument() const;
 	virtual void OnDraw(CDC* pDC);  // overridden to draw this view
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);		// camera movement effect
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);	// zoom effect
 	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
@@ -65,6 +67,7 @@ private:
 	D3DCOLOR bpalette = D3DCOLOR_XRGB(255, 255, 255);	// palette color for background
 	D3DCOLOR palette = D3DCOLOR_XRGB(0, 0, 0);			// palette color for text, graphics
 	D3DXVECTOR3 cam_position = { 0.5f, 0.0f, -1.0f };	// set default camera position
+	D3DXVECTOR3 lookat_position = { 0.5f, 0.0f, 0.0f };	// set default look-at position
 	D3DPRESENT_PARAMETERS d3dpp;						// create a struct to hold various device information
 	VOID begindraw();
 	VOID cls();

@@ -72,6 +72,7 @@ BEGIN_MESSAGE_MAP(CcitafoilView, CView)
 	ON_CBN_SELENDOK(IDR_COMBOBOX_AIRFOILS, &CcitafoilView::On_combobox_airfoils_changed)
 	ON_EN_CHANGE(IDR_EDIT_INTERPOLATION_LEVEL, &CcitafoilView::On_edit_interpolation_level_changed)
 	ON_WM_MOUSEWHEEL()
+	ON_WM_KEYDOWN()
 	ON_WM_CREATE()
 END_MESSAGE_MAP()
 
@@ -371,6 +372,44 @@ VOID CcitafoilView::redraw_vbuffer()
 	render();
 }
 
+void CcitafoilView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	switch (nChar)
+	{
+	case VK_LEFT:
+		cam_position.x -= CAMERA_MOVEMENT_STEP;
+		lookat_position.x -= CAMERA_MOVEMENT_STEP;
+		break;
+	case VK_RIGHT:
+		cam_position.x += CAMERA_MOVEMENT_STEP;
+		lookat_position.x += CAMERA_MOVEMENT_STEP;
+		break;
+	case VK_UP:
+		cam_position.y += CAMERA_MOVEMENT_STEP;
+		lookat_position.y += CAMERA_MOVEMENT_STEP;
+		break;
+	case VK_DOWN:
+		cam_position.y -= CAMERA_MOVEMENT_STEP;
+		lookat_position.y -= CAMERA_MOVEMENT_STEP;
+		break;
+	case VK_HOME:
+		// restore default position
+		cam_position = D3DXVECTOR3(0.5f, 0.0f, -1.0f);
+		lookat_position = D3DXVECTOR3(0.5f, 0.0f, 0.0f);
+		break;
+	};
+
+	// the view transform matrix
+	D3DXMATRIX matView;
+	D3DXMatrixLookAtLH(&matView,
+		&cam_position,						// the camera position. this position (negative z) helps resembling conventional cartesian space.
+		&lookat_position,					// the look-at position
+		&D3DXVECTOR3(0.0f, 1.0f, 0.0f));	// the up direction
+	HR_CHECK(d3ddev->SetTransform(D3DTS_VIEW, &matView));	// set the view transform to matView
+
+	redraw_vbuffer();
+}
+
 BOOL CcitafoilView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
 	// change z position of camera
@@ -385,7 +424,7 @@ BOOL CcitafoilView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 	D3DXMATRIX matView;
 	D3DXMatrixLookAtLH(&matView,
 		&cam_position,						// the camera position. this position (negative z) helps resembling conventional cartesian space.
-		&D3DXVECTOR3(0.5f, 0.0f, 0.0f),		// the look-at position
+		&lookat_position,					// the look-at position
 		&D3DXVECTOR3(0.0f, 1.0f, 0.0f));	// the up direction
 	HR_CHECK(d3ddev->SetTransform(D3DTS_VIEW, &matView));	// set the view transform to matView
 

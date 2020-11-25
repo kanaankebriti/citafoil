@@ -59,6 +59,9 @@ private:
 	LPDIRECT3D9 d3d = NULL;								// the pointer to our Direct3D interface
 	LPDIRECT3DDEVICE9 d3ddev = NULL;					// the pointer to the device class
 	LPDIRECT3DVERTEXBUFFER9 vertex_buffer;
+	LPDIRECT3DVERTEXBUFFER9 airfoil_vertex_buffer = NULL;
+	LPDIRECT3DVERTEXBUFFER9 boundary_points_vertex_buffer = NULL;
+	LPDIRECT3DVERTEXBUFFER9 mean_camber_line_vertex_buffer = NULL;
 	D3DCOLOR bpalette = D3DCOLOR_XRGB(255, 255, 255);	// palette color for background
 	D3DCOLOR palette = D3DCOLOR_XRGB(0, 0, 0);			// palette color for text, graphics
 	D3DXVECTOR3 cam_position = { 0.5f, 0.0f, -1.0f };	// set default camera position
@@ -71,8 +74,8 @@ private:
 	VOID linter(std::vector<D3DXVECTOR3>* _plist);
 	VOID outtextxy(LONG _x, LONG _y, CONST CHAR* txt);
 	VOID pset(_In_ FLOAT _x, _In_ FLOAT _y);
-	VOID plist(std::vector<D3DXVECTOR3>* _plist);
-	VOID plist(std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>>* _plist);
+	VOID plist(std::vector<D3DXVECTOR3>* _boundary_points, std::vector<D3DXVECTOR3>* _original_points);
+	VOID redraw_vbuffer();
 	VOID render();
 	// airfoils
 	std::vector<D3DXVECTOR3> NACA0006 =

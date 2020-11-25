@@ -140,7 +140,10 @@ bool compareByX(D3DXVECTOR3& p1, D3DXVECTOR3& p2)
 /// <summary>perform bisection for each quadrilateral in boundary points</summary>
 VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 {
+	VOID* pVoid; // the void pointer
 	std::vector<D3DXVECTOR3> upper_surface, lower_surface;
+	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> mean_camber_line;
+	
 	float x1, x2, x3, x4, y1, y2, y3, y4;
 	USHORT i = 1;	// from 1 in order to exclude (1,0)
 
@@ -160,14 +163,23 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 
 	std::sort(upper_surface.begin(), upper_surface.end(), compareByX);
 	std::sort(lower_surface.begin(), lower_surface.end(), compareByX);
-	
+
+	// mean camber line color
+	palette = D3DCOLOR_XRGB(255, 0, 0);
+
+	// connect mean camber line to the leading edge
+	mean_camber_line.push_back(std::pair(D3DXVECTOR3(0, 0, 0), palette));
+
 	for (USHORT i = 1; i < max(upper_surface.size(), lower_surface.size()) - 2; i++)
 	{
 		// rearenge point of each quadrilateral such that
-		// upper left	(x1,y1)
-		// lower left	(x2,y2)
-		// upper right	(x3,y3)
-		// lower right	(x4,y4)
+		// upper left	(x1,y1) ┐
+		// upper right	(x3,y3) ┤
+		//						└─> from upper surface
+		//
+		// lower left	(x2,y2) ┐
+		// lower right	(x4,y4) ┤
+		//						└─> from lower surface
 
 		if (i < upper_surface.size() - 1)
 		{
@@ -220,7 +232,7 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 
 		float x5, x6, y5, y6;
 
-		if ((A1 * A2 + B1 * B2) > 0)
+		if ((A1 * A2 + B1 * B2) >= 0)
 		{
 			x5 = (C3 * (R * B1 + B2) + B3 * (C2 + R * C1)) / (A3 * (R * B1 + B2) - B3 * (R * A1 + A2));
 			y5 = (-A3 * (C2 + R * C1) - C3 * (R * A1 + A2)) / (A3 * (R * B1 + B2) - B3 * (R * A1 + A2));
@@ -235,22 +247,20 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 			y6 = (A4 * (C2 - R * C1) - C4 * (R * A1 - A2)) / (A4 * (R * B1 - B2) - B4 * (R * A1 - A2));
 		}
 
-		begindraw();
-		palette = D3DCOLOR_XRGB(255, 0, 0);
-		line(x5, y5, x6, y6);
-		/*
-		palette = D3DCOLOR_XRGB(0, 255, 0);
-		line(x1, y1, x2, y2);
-		line(x3, y3, x4, y4);
-		palette = D3DCOLOR_XRGB(0, 0, 255);
-		line(x1, y1, x3, y3);
-		palette = D3DCOLOR_XRGB(0, 255, 255);
-		line(x2, y2, x4, y4);
-		*/
-		enddraw();
-		render();
+		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x5, y5, 0), palette));
+		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x6, y6, 0), palette));
 	}
+
+	// connect mean camber line to the trailing edge
+	mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
+
+	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(mean_camber_line.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &mean_camber_line_vertex_buffer, NULL));
+	mean_camber_line_vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
+	memcpy(pVoid, mean_camber_line.data(), mean_camber_line.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// copy the vertices to the locked buffer
+	mean_camber_line_vertex_buffer->Unlock();	// unlock the vertex buffer
+
 	palette = D3DCOLOR_XRGB(0, 0, 0);
+	redraw_vbuffer();
 }
 
 void CcitafoilView::On_edit_interpolation_level_changed()
@@ -264,9 +274,6 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 	// calculate interpolated airfoil and draw it
 	std::vector<D3DXVECTOR3> boundary_points;
 
-	cls();
-	begindraw();
-
 	if (selected_airfoil == "NACA-0006")
 	{
 		if (!interpolation_level)
@@ -276,10 +283,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 		}
 		else
 			boundary_points = drawcrs(&NACA0006, interpolation_level);
-		palette = D3DCOLOR_XRGB(255, 255, 0);
-		plist(&boundary_points);
-		palette = D3DCOLOR_XRGB(255, 0, 0);
-		plist(&NACA0006);
+		plist(&boundary_points, &NACA0006);
 	}
 	else if (selected_airfoil == "NACA-0008")
 	{
@@ -290,10 +294,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 		}
 		else
 			boundary_points = drawcrs(&NACA0008, interpolation_level);
-		palette = D3DCOLOR_XRGB(255, 255, 0);
-		plist(&boundary_points);
-		palette = D3DCOLOR_XRGB(255, 0, 0);
-		plist(&NACA0008);
+		plist(&boundary_points, &NACA0008);
 	}
 	else if (selected_airfoil == "NACA-0010")
 	{
@@ -304,10 +305,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 		}
 		else
 			boundary_points = drawcrs(&NACA0010, interpolation_level);
-		palette = D3DCOLOR_XRGB(255, 255, 0);
-		plist(&boundary_points);
-		palette = D3DCOLOR_XRGB(255, 0, 0);
-		plist(&NACA0010);
+		plist(&boundary_points, &NACA0010);
 	}
 	else if (selected_airfoil == "NACA-2414")
 	{
@@ -318,10 +316,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 		}
 		else
 			boundary_points = drawcrs(&NACA2414, interpolation_level);
-		palette = D3DCOLOR_XRGB(255, 255, 0);
-		plist(&boundary_points);
-		palette = D3DCOLOR_XRGB(255, 0, 0);
-		plist(&NACA2414);
+		plist(&boundary_points, &NACA2414);
 	}
 	else if (selected_airfoil == "NACA-23012")
 	{
@@ -332,17 +327,48 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 		}
 		else
 			boundary_points = drawcrs(&NACA23012, interpolation_level);
-		palette = D3DCOLOR_XRGB(255, 255, 0);
-		plist(&boundary_points);
-		palette = D3DCOLOR_XRGB(255, 0, 0);
-		plist(&NACA23012);
+		plist(&boundary_points, &NACA23012);
 	}
 	palette = D3DCOLOR_XRGB(0, 0, 0);
 
+	bisect(&boundary_points);
+}
+
+VOID CcitafoilView::redraw_vbuffer()
+{
+	UINT airfoil_vertex_buffer_size;
+	UINT boundary_points_vertex_buffer_size;
+	UINT camber_line_vertex_buffer_size;
+	D3DVERTEXBUFFER_DESC vbuffer_data;
+
+	// retrive vertex buffers size
+	HR_CHECK(airfoil_vertex_buffer->GetDesc(&vbuffer_data));
+	airfoil_vertex_buffer_size = vbuffer_data.Size;
+	airfoil_vertex_buffer_size /= sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3);
+	
+	HR_CHECK(boundary_points_vertex_buffer->GetDesc(&vbuffer_data));
+	boundary_points_vertex_buffer_size = vbuffer_data.Size;
+	boundary_points_vertex_buffer_size /= sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3);
+	
+	HR_CHECK(mean_camber_line_vertex_buffer->GetDesc(&vbuffer_data));
+	camber_line_vertex_buffer_size = vbuffer_data.Size;
+	camber_line_vertex_buffer_size /= sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3);
+
+	// redraw vertex buffers
+	cls();
+	render();
+	begindraw();
+	// redraw boundary points
+	HR_CHECK(d3ddev->SetStreamSource(0, boundary_points_vertex_buffer, 0, sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))); // select the vertex buffer to display
+	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_TRIANGLELIST, 0, boundary_points_vertex_buffer_size / 3)); // copy the vertex buffer to the back buffer
+	// redraw airfoil spline
+	HR_CHECK(d3ddev->SetStreamSource(0, airfoil_vertex_buffer, 0, sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))); // select the vertex buffer to display
+	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINESTRIP, 0, airfoil_vertex_buffer_size - 1)); // copy the vertex buffer to the back buffer
+	// redraw camberline spline
+	HR_CHECK(d3ddev->SetStreamSource(0, mean_camber_line_vertex_buffer, 0, sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))); // select the vertex buffer to display
+	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINESTRIP, 0, camber_line_vertex_buffer_size - 1)); // copy the vertex buffer to the back buffer
 	enddraw();
 	render();
-
-	bisect(&boundary_points);
 }
 
 BOOL CcitafoilView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
@@ -363,7 +389,8 @@ BOOL CcitafoilView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 		&D3DXVECTOR3(0.0f, 1.0f, 0.0f));	// the up direction
 	HR_CHECK(d3ddev->SetTransform(D3DTS_VIEW, &matView));	// set the view transform to matView
 
-	On_combobox_airfoils_changed();
+	redraw_vbuffer();
+
 	return TRUE;
 }
 
@@ -417,8 +444,10 @@ void CcitafoilView::OnDraw(CDC* /*pDC*/)
 	HR_CHECK(d3ddev->SetFVF(D3DFVF));
 	// turn off the 3D lighting
 	HR_CHECK(d3ddev->SetRenderState(D3DRS_LIGHTING, FALSE));
-	// clear output
+	
 	On_combobox_airfoils_changed();
+	
+	redraw_vbuffer();
 }
 
 void CcitafoilView::OnRButtonUp(UINT /* nFlags */, CPoint point)
@@ -549,12 +578,10 @@ std::vector<D3DXVECTOR3> CcitafoilView::drawcrs(std::vector<D3DXVECTOR3>* _plist
 			vertex.at(j).second = palette;
 		}
 
-	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL));
-	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);							// lock the vertex buffer
+	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &airfoil_vertex_buffer, NULL));
+	airfoil_vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);							// lock the vertex buffer
 	memcpy(pVoid, vertex.data(), vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// copy the vertices to the locked buffer
-	vertex_buffer->Unlock();		// unlock the vertex buffer
-	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// select the vertex buffer to display
-	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINESTRIP, 0, number_of_vertices - 1));// copy the vertex buffer to the back buffer
+	airfoil_vertex_buffer->Unlock();		// unlock the vertex buffer
 
 	// vertex.first contains (x,y,z) and that is what we want as return
 	for (i = 0; i < vertex.size(); i++)
@@ -603,31 +630,32 @@ VOID CcitafoilView::linter(std::vector<D3DXVECTOR3>* _plist)
 		vertex.push_back(std::pair(D3DXVECTOR3(FLOAT(_plist->at(i).x), FLOAT(_plist->at(i).y), FLOAT(0)), palette));
 	}
 
-	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL));
-	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
+	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &airfoil_vertex_buffer, NULL));
+	airfoil_vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
 	memcpy(pVoid, vertex.data(), vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// copy the vertices to the locked buffer
-	vertex_buffer->Unlock();	// unlock the vertex buffer
-	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))));	// select the vertex buffer to display
-	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINELIST, 0, UINT(vertex.size())));	// copy the vertex buffer to the back buffer
+	airfoil_vertex_buffer->Unlock();	// unlock the vertex buffer
 }
 
 /// <summary>draws list of points</summary>
-VOID CcitafoilView::plist(std::vector<D3DXVECTOR3>* _plist)
+VOID CcitafoilView::plist(std::vector<D3DXVECTOR3>* _boundary_points, std::vector<D3DXVECTOR3>* _original_points)
 {
 	UINT i;		// counter
 	VOID* pVoid;// the void pointer
 	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> vertex;
 
+	// color of _boundary_points
+	palette = D3DCOLOR_XRGB(255, 255, 0);
+
 	// map control point #0 to point #n to vertex
 	// plist->size() = number of control points
-	for (i = 0; i < _plist->size(); i++)
+	for (i = 0; i < _boundary_points->size(); i++)
 	{
 		// 1.155 = sqrt(16/3) / 2
 		vertex.push_back(
 			std::pair(
 				D3DXVECTOR3(
-					FLOAT(_plist->at(i).x + 1.155f * TRIANGLE_UNIT_LENGTH)
-					, FLOAT(_plist->at(i).y - TRIANGLE_UNIT_LENGTH)
+					FLOAT(_boundary_points->at(i).x + 1.155f * TRIANGLE_UNIT_LENGTH)
+					, FLOAT(_boundary_points->at(i).y - TRIANGLE_UNIT_LENGTH)
 					, FLOAT(0))
 				, palette
 			)
@@ -636,8 +664,8 @@ VOID CcitafoilView::plist(std::vector<D3DXVECTOR3>* _plist)
 		vertex.push_back(
 			std::pair(
 				D3DXVECTOR3(
-					FLOAT(_plist->at(i).x - 1.155f * TRIANGLE_UNIT_LENGTH)
-					, FLOAT(_plist->at(i).y - TRIANGLE_UNIT_LENGTH)
+					FLOAT(_boundary_points->at(i).x - 1.155f * TRIANGLE_UNIT_LENGTH)
+					, FLOAT(_boundary_points->at(i).y - TRIANGLE_UNIT_LENGTH)
 					, FLOAT(0))
 				, palette
 			)
@@ -646,38 +674,26 @@ VOID CcitafoilView::plist(std::vector<D3DXVECTOR3>* _plist)
 		vertex.push_back(
 			std::pair(
 				D3DXVECTOR3(
-					FLOAT(_plist->at(i).x)
-					, FLOAT(_plist->at(i).y + TRIANGLE_UNIT_LENGTH)
+					FLOAT(_boundary_points->at(i).x)
+					, FLOAT(_boundary_points->at(i).y + TRIANGLE_UNIT_LENGTH)
 					, FLOAT(0))
 				, palette
 			)
 		);
 	}
 
-	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL));
-	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
-	memcpy(pVoid, vertex.data(), vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// copy the vertices to the locked buffer
-	vertex_buffer->Unlock();	// unlock the vertex buffer
-	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))));	// select the vertex buffer to display
-	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_TRIANGLELIST, 0, UINT(vertex.size())));	// copy the vertex buffer to the back buffer
-}
+	// color of _original_points
+	palette = D3DCOLOR_XRGB(255, 0, 0);
 
-VOID CcitafoilView::plist(std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>>* _plist)
-{
-	UINT i;		// counter
-	VOID* pVoid;// the void pointer
-	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> vertex;
-
-	// map control point #0 to point #n to vertex
-	// plist->size() = number of control points
-	for (i = 0; i < _plist->size(); i++)
+	// load _original_points to plist_vertex_buffer
+	for (i = 0; i < _original_points->size(); i++)
 	{
 		// 1.155 = sqrt(16/3) / 2
 		vertex.push_back(
 			std::pair(
 				D3DXVECTOR3(
-					FLOAT(_plist->at(i).first.x + 1.155f * TRIANGLE_UNIT_LENGTH)
-					, FLOAT(_plist->at(i).first.y - TRIANGLE_UNIT_LENGTH)
+					FLOAT(_original_points->at(i).x + 1.155f * TRIANGLE_UNIT_LENGTH)
+					, FLOAT(_original_points->at(i).y - TRIANGLE_UNIT_LENGTH)
 					, FLOAT(0))
 				, palette
 			)
@@ -686,8 +702,8 @@ VOID CcitafoilView::plist(std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>>* _plist)
 		vertex.push_back(
 			std::pair(
 				D3DXVECTOR3(
-					FLOAT(_plist->at(i).first.x - 1.155f * TRIANGLE_UNIT_LENGTH)
-					, FLOAT(_plist->at(i).first.y - TRIANGLE_UNIT_LENGTH)
+					FLOAT(_original_points->at(i).x - 1.155f * TRIANGLE_UNIT_LENGTH)
+					, FLOAT(_original_points->at(i).y - TRIANGLE_UNIT_LENGTH)
 					, FLOAT(0))
 				, palette
 			)
@@ -696,20 +712,18 @@ VOID CcitafoilView::plist(std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>>* _plist)
 		vertex.push_back(
 			std::pair(
 				D3DXVECTOR3(
-					FLOAT(_plist->at(i).first.x)
-					, FLOAT(_plist->at(i).first.y + TRIANGLE_UNIT_LENGTH)
+					FLOAT(_original_points->at(i).x)
+					, FLOAT(_original_points->at(i).y + TRIANGLE_UNIT_LENGTH)
 					, FLOAT(0))
 				, palette
 			)
 		);
-}
+	}
 
-	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &vertex_buffer, NULL));
-	vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
+	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &boundary_points_vertex_buffer, NULL));
+	boundary_points_vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
 	memcpy(pVoid, vertex.data(), vertex.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// copy the vertices to the locked buffer
-	vertex_buffer->Unlock();	// unlock the vertex buffer
-	HR_CHECK(d3ddev->SetStreamSource(0, vertex_buffer, 0, (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))));	// select the vertex buffer to display
-	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_TRIANGLELIST, 0, UINT(vertex.size())));	// copy the vertex buffer to the back buffer
+	boundary_points_vertex_buffer->Unlock();	// unlock the vertex buffer
 }
 
 // CcitafoilView diagnostics

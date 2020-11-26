@@ -363,6 +363,19 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 			boundary_points = drawcrs(&NACA23012, interpolation_level);
 		plist(&boundary_points, &NACA23012);
 	}
+	else if (selected_airfoil == "NACA-25112")
+	{
+		if (!interpolation_level)
+		{
+			boundary_points = NACA25112;
+			linter(&NACA25112);
+		}
+		else
+			boundary_points = drawcrs(&NACA25112, interpolation_level);
+		plist(&boundary_points, &NACA25112);
+	}
+
+	// restore palette color
 	palette = D3DCOLOR_XRGB(0, 0, 0);
 
 	bisect(&boundary_points);

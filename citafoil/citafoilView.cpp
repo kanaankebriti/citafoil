@@ -120,8 +120,38 @@ void CcitafoilView::OnInitialUpdate()
 		ERROR_MSG(L"Failed to initialize Direct3D 9 Device.");
 		terminate();
 	}
+
+	// the view transform matrix
+	D3DXMATRIX matView;
+	D3DXMatrixLookAtLH(&matView,
+		&cam_position,						// the camera position. this position (negative z) helps resembling conventional cartesian space.
+		&lookat_position,					// the look-at position
+		&D3DXVECTOR3(0.0f, 1.0f, 0.0f));	// the up direction
+	HR_CHECK(d3ddev->SetTransform(D3DTS_VIEW, &matView));	// set the view transform to matView
+
+	// aspect ratio
+	RECT lpRect;
+	this->GetWindowRect(&lpRect);
+	FLOAT wndWidth = (FLOAT)(lpRect.right) - (FLOAT)lpRect.left;
+	FLOAT wndHeight = (FLOAT)(lpRect.bottom) - (FLOAT)lpRect.top;
+	FLOAT wndAspect = wndWidth / wndHeight;
+
+	// the projection transform matrix
+	D3DXMATRIX matProjection;
+	D3DXMatrixPerspectiveFovLH(&matProjection,
+		D3DXToRadian(45),	// the horizontal field of view
+		wndAspect,			// aspect ratio
+		1,					// the near view-plane
+		0);					// the far view-plane
+	HR_CHECK(d3ddev->SetTransform(D3DTS_PROJECTION, &matProjection));
+	// select which vertex format we are using
+	HR_CHECK(d3ddev->SetFVF(D3DFVF));
+	// turn off the 3D lighting
+	HR_CHECK(d3ddev->SetRenderState(D3DRS_LIGHTING, FALSE));
 	// visible back side of primitives
 	//HR_CHECK(d3ddev->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE));
+
+	On_combobox_airfoils_changed();
 }
 
 void CcitafoilView::On_combobox_airfoils_changed()
@@ -255,11 +285,17 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 	// connect mean camber line to the trailing edge
 	mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
 
+	// draw FALSE chord line
+	palette = D3DCOLOR_XRGB(0, 255, 255);
+	mean_camber_line.push_back(std::pair(D3DXVECTOR3(0, 0, 0), palette));
+	mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
+
 	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(mean_camber_line.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &mean_camber_line_vertex_buffer, NULL));
 	mean_camber_line_vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
 	memcpy(pVoid, mean_camber_line.data(), mean_camber_line.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// copy the vertices to the locked buffer
 	mean_camber_line_vertex_buffer->Unlock();	// unlock the vertex buffer
 
+	// restore palette color
 	palette = D3DCOLOR_XRGB(0, 0, 0);
 	redraw_vbuffer();
 }
@@ -540,8 +576,6 @@ void CcitafoilView::OnDraw(CDC* /*pDC*/)
 	HR_CHECK(d3ddev->SetFVF(D3DFVF));
 	// turn off the 3D lighting
 	HR_CHECK(d3ddev->SetRenderState(D3DRS_LIGHTING, FALSE));
-	
-	On_combobox_airfoils_changed();
 	
 	redraw_vbuffer();
 }

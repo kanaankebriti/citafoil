@@ -319,6 +319,17 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 			boundary_points = drawcrs(&NACA2414, interpolation_level);
 		plist(&boundary_points, &NACA2414);
 	}
+	else if (selected_airfoil == "NACA-4412")
+	{
+		if (!interpolation_level)
+		{
+			boundary_points = NACA4412;
+			linter(&NACA4412);
+		}
+		else
+			boundary_points = drawcrs(&NACA4412, interpolation_level);
+		plist(&boundary_points, &NACA4412);
+	}
 	else if (selected_airfoil == "NACA-4415")
 	{
 		if (!interpolation_level)

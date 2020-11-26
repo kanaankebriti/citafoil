@@ -90,6 +90,7 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	combobox_airfoils.AddString(_T("NACA-0010"));
 	combobox_airfoils.AddString(_T("NACA-2414"));
 	combobox_airfoils.AddString(_T("NACA-4415"));
+	combobox_airfoils.AddString(_T("NACA-6409"));
 	combobox_airfoils.AddString(_T("NACA-23012"));
 	combobox_airfoils.SetCurSel(0);
 

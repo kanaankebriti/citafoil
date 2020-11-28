@@ -62,7 +62,7 @@ LPCWSTR get_error_string_d3d9(HRESULT hr)
 
 #define ERROR_MSG(X) AfxMessageBox(X, MB_ICONSTOP | MB_OK);
 #define HR_CHECK(X) if (FAILED(X)) { ERROR_MSG(get_error_string_d3d9(X)); __debugbreak(); terminate(); }
-
+#define LOAD_AIRFOIL(X) {if (!interpolation_level){boundary_points = X;linter(&X);}else boundary_points = drawcrs(&X, interpolation_level);plist(&boundary_points, &X);}
 
 IMPLEMENT_DYNCREATE(CcitafoilView, CView)
 
@@ -327,137 +327,33 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 	std::vector<D3DXVECTOR3> boundary_points;
 
 	if (selected_airfoil == "NACA 0006")
-	{
-		if (!interpolation_level)
-		{
-			boundary_points = NACA0006;
-			linter(&NACA0006);
-		}
-		else
-			boundary_points = drawcrs(&NACA0006, interpolation_level);
-		plist(&boundary_points, &NACA0006);
-	}
+		LOAD_AIRFOIL(NACA0006)
 	else if (selected_airfoil == "NACA 0008")
-	{
-		if (!interpolation_level)
-		{
-			boundary_points = NACA0008;
-			linter(&NACA0008);
-		}
-		else
-			boundary_points = drawcrs(&NACA0008, interpolation_level);
-		plist(&boundary_points, &NACA0008);
-	}
+		LOAD_AIRFOIL(NACA0008)
 	else if (selected_airfoil == "NACA 0010")
-	{
-		if (!interpolation_level)
-		{
-			boundary_points = NACA0010;
-			linter(&NACA0010);
-		}
-		else
-			boundary_points = drawcrs(&NACA0010, interpolation_level);
-		plist(&boundary_points, &NACA0010);
-	}
+		LOAD_AIRFOIL(NACA0010)
 	else if (selected_airfoil == "NACA 2414")
-	{
-		if (!interpolation_level)
-		{
-			boundary_points = NACA2414;
-			linter(&NACA2414);
-		}
-		else
-			boundary_points = drawcrs(&NACA2414, interpolation_level);
-		plist(&boundary_points, &NACA2414);
-	}
+		LOAD_AIRFOIL(NACA2414)
 	else if (selected_airfoil == "NACA 4412")
-	{
-		if (!interpolation_level)
-		{
-			boundary_points = NACA4412;
-			linter(&NACA4412);
-		}
-		else
-			boundary_points = drawcrs(&NACA4412, interpolation_level);
-		plist(&boundary_points, &NACA4412);
-	}
+		LOAD_AIRFOIL(NACA4412)
 	else if (selected_airfoil == "NACA 4415")
-	{
-		if (!interpolation_level)
-		{
-			boundary_points = NACA4415;
-			linter(&NACA4415);
-		}
-		else
-			boundary_points = drawcrs(&NACA4415, interpolation_level);
-		plist(&boundary_points, &NACA4415);
-	}
+		LOAD_AIRFOIL(NACA4415)
 	else if (selected_airfoil == "NACA 6409")
-	{
-		if (!interpolation_level)
-		{
-			boundary_points = NACA6409;
-			linter(&NACA6409);
-		}
-		else
-			boundary_points = drawcrs(&NACA6409, interpolation_level);
-		plist(&boundary_points, &NACA6409);
-	}
+		LOAD_AIRFOIL(NACA6409)
 	else if (selected_airfoil == "NACA 23012")
-	{
-		if (!interpolation_level)
-		{
-			boundary_points = NACA23012;
-			linter(&NACA23012);
-		}
-		else
-			boundary_points = drawcrs(&NACA23012, interpolation_level);
-		plist(&boundary_points, &NACA23012);
-	}
+		LOAD_AIRFOIL(NACA23012)
 	else if (selected_airfoil == "NACA 23112")
-	{
-		if (!interpolation_level)
-		{
-			boundary_points = NACA23112;
-			linter(&NACA23112);
-		}
-		else
-			boundary_points = drawcrs(&NACA23112, interpolation_level);
-		plist(&boundary_points, &NACA23112);
-	}
+		LOAD_AIRFOIL(NACA23112)
 	else if (selected_airfoil == "NACA 25112")
-	{
-		if (!interpolation_level)
-		{
-			boundary_points = NACA25112;
-			linter(&NACA25112);
-		}
-		else
-			boundary_points = drawcrs(&NACA25112, interpolation_level);
-		plist(&boundary_points, &NACA25112);
-	}
+		LOAD_AIRFOIL(NACA25112)
 	else if (selected_airfoil == "NACA 63(2)-615")
-	{
-	if (!interpolation_level)
-	{
-		boundary_points = NACA632615;
-		linter(&NACA632615);
-	}
-	else
-		boundary_points = drawcrs(&NACA632615, interpolation_level);
-	plist(&boundary_points, &NACA632615);
-	}
+		LOAD_AIRFOIL(NACA632615)
 	else if (selected_airfoil == "NACA 65(2)-215")
-	{
-		if (!interpolation_level)
-		{
-			boundary_points = NACA652215;
-			linter(&NACA652215);
-		}
-	else
-		boundary_points = drawcrs(&NACA652215, interpolation_level);
-	plist(&boundary_points, &NACA652215);
-	}
+		LOAD_AIRFOIL(NACA652215)
+	//else if (selected_airfoil == "Selig S1223")
+		//LOAD_AIRFOIL(S1223)
+	else if (selected_airfoil == "Selig S3024")
+		LOAD_AIRFOIL(S3024)
 
 	// restore palette color
 	palette = D3DCOLOR_XRGB(0, 0, 0);

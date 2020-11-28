@@ -174,6 +174,7 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 	VOID* pVoid; // the void pointer
 	std::vector<D3DXVECTOR3> upper_surface, lower_surface;
 	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> mean_camber_line;
+	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> airfoil_mesh;
 	
 	float x1, x2, x3, x4, y1, y2, y3, y4;
 	USHORT i = 1;	// from 1 in order to exclude (1,0)
@@ -199,9 +200,9 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 	palette = D3DCOLOR_XRGB(255, 0, 0);
 
 	// connect mean camber line to the leading edge
-	//mean_camber_line.push_back(std::pair(D3DXVECTOR3(0, 0, 0), palette));
+	mean_camber_line.push_back(std::pair(D3DXVECTOR3(0, 0, 0), palette));
 
-	for (USHORT i = 0; i < max(upper_surface.size(), lower_surface.size()) - 2; i++)
+	for (USHORT i = 1; i < max(upper_surface.size(), lower_surface.size()) - 2; i++)
 	{
 		// rearenge point of each quadrilateral such that
 		// upper left	(x1,y1) ┐
@@ -282,25 +283,32 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x5, y5, 0), palette));
 		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x6, y6, 0), palette));
 
-		// add grid line
-		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x1, y1, 0), D3DCOLOR_XRGB(0, 255, 0)));
-		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x2, y2, 0), D3DCOLOR_XRGB(0, 255, 0)));
-		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x3, y3, 0), D3DCOLOR_XRGB(0, 255, 0)));
-		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x4, y4, 0), D3DCOLOR_XRGB(0, 255, 0)));
+		// add mesh lines
+		airfoil_mesh.push_back(std::pair(D3DXVECTOR3(x1, y1, 0), D3DCOLOR_XRGB(0, 255, 0)));
+		airfoil_mesh.push_back(std::pair(D3DXVECTOR3(x2, y2, 0), D3DCOLOR_XRGB(0, 255, 0)));
+		airfoil_mesh.push_back(std::pair(D3DXVECTOR3(x3, y3, 0), D3DCOLOR_XRGB(0, 255, 0)));
+		airfoil_mesh.push_back(std::pair(D3DXVECTOR3(x4, y4, 0), D3DCOLOR_XRGB(0, 255, 0)));
 	}
 
 	// connect mean camber line to the trailing edge
-	//mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
+	mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
 
 	// draw FALSE chord line
 	palette = D3DCOLOR_XRGB(0, 255, 255);
-	//mean_camber_line.push_back(std::pair(D3DXVECTOR3(0, 0, 0), palette));
-	//mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
+	mean_camber_line.push_back(std::pair(D3DXVECTOR3(0, 0, 0), palette));
+	mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
 
+	// assign mean_camber_line to mean_camber_line_vertex_buffer
 	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(mean_camber_line.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &mean_camber_line_vertex_buffer, NULL));
 	mean_camber_line_vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
 	memcpy(pVoid, mean_camber_line.data(), mean_camber_line.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// copy the vertices to the locked buffer
 	mean_camber_line_vertex_buffer->Unlock();	// unlock the vertex buffer
+
+	// assign airfoil_mesh to airfoil_mesh_vertex_buffer
+	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(airfoil_mesh.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &airfoil_mesh_vertex_buffer, NULL));
+	airfoil_mesh_vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
+	memcpy(pVoid, airfoil_mesh.data(), airfoil_mesh.size()* (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3)));	// copy the vertices to the locked buffer
+	airfoil_mesh_vertex_buffer->Unlock();	// unlock the vertex buffer
 
 	// restore palette color
 	palette = D3DCOLOR_XRGB(0, 0, 0);
@@ -318,7 +326,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 	// calculate interpolated airfoil and draw it
 	std::vector<D3DXVECTOR3> boundary_points;
 
-	if (selected_airfoil == "NACA-0006")
+	if (selected_airfoil == "NACA 0006")
 	{
 		if (!interpolation_level)
 		{
@@ -329,7 +337,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 			boundary_points = drawcrs(&NACA0006, interpolation_level);
 		plist(&boundary_points, &NACA0006);
 	}
-	else if (selected_airfoil == "NACA-0008")
+	else if (selected_airfoil == "NACA 0008")
 	{
 		if (!interpolation_level)
 		{
@@ -340,7 +348,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 			boundary_points = drawcrs(&NACA0008, interpolation_level);
 		plist(&boundary_points, &NACA0008);
 	}
-	else if (selected_airfoil == "NACA-0010")
+	else if (selected_airfoil == "NACA 0010")
 	{
 		if (!interpolation_level)
 		{
@@ -351,7 +359,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 			boundary_points = drawcrs(&NACA0010, interpolation_level);
 		plist(&boundary_points, &NACA0010);
 	}
-	else if (selected_airfoil == "NACA-2414")
+	else if (selected_airfoil == "NACA 2414")
 	{
 		if (!interpolation_level)
 		{
@@ -362,7 +370,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 			boundary_points = drawcrs(&NACA2414, interpolation_level);
 		plist(&boundary_points, &NACA2414);
 	}
-	else if (selected_airfoil == "NACA-4412")
+	else if (selected_airfoil == "NACA 4412")
 	{
 		if (!interpolation_level)
 		{
@@ -373,7 +381,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 			boundary_points = drawcrs(&NACA4412, interpolation_level);
 		plist(&boundary_points, &NACA4412);
 	}
-	else if (selected_airfoil == "NACA-4415")
+	else if (selected_airfoil == "NACA 4415")
 	{
 		if (!interpolation_level)
 		{
@@ -384,7 +392,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 			boundary_points = drawcrs(&NACA4415, interpolation_level);
 		plist(&boundary_points, &NACA4415);
 	}
-	else if (selected_airfoil == "NACA-6409")
+	else if (selected_airfoil == "NACA 6409")
 	{
 		if (!interpolation_level)
 		{
@@ -395,7 +403,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 			boundary_points = drawcrs(&NACA6409, interpolation_level);
 		plist(&boundary_points, &NACA6409);
 	}
-	else if (selected_airfoil == "NACA-23012")
+	else if (selected_airfoil == "NACA 23012")
 	{
 		if (!interpolation_level)
 		{
@@ -406,7 +414,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 			boundary_points = drawcrs(&NACA23012, interpolation_level);
 		plist(&boundary_points, &NACA23012);
 	}
-	else if (selected_airfoil == "NACA-23112")
+	else if (selected_airfoil == "NACA 23112")
 	{
 		if (!interpolation_level)
 		{
@@ -417,7 +425,7 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 			boundary_points = drawcrs(&NACA23112, interpolation_level);
 		plist(&boundary_points, &NACA23112);
 	}
-	else if (selected_airfoil == "NACA-25112")
+	else if (selected_airfoil == "NACA 25112")
 	{
 		if (!interpolation_level)
 		{
@@ -427,6 +435,28 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 		else
 			boundary_points = drawcrs(&NACA25112, interpolation_level);
 		plist(&boundary_points, &NACA25112);
+	}
+	else if (selected_airfoil == "NACA 63(2)-615")
+	{
+	if (!interpolation_level)
+	{
+		boundary_points = NACA632615;
+		linter(&NACA632615);
+	}
+	else
+		boundary_points = drawcrs(&NACA632615, interpolation_level);
+	plist(&boundary_points, &NACA632615);
+	}
+	else if (selected_airfoil == "NACA 65(2)-215")
+	{
+		if (!interpolation_level)
+		{
+			boundary_points = NACA652215;
+			linter(&NACA652215);
+		}
+	else
+		boundary_points = drawcrs(&NACA652215, interpolation_level);
+	plist(&boundary_points, &NACA652215);
 	}
 
 	// restore palette color
@@ -440,6 +470,7 @@ VOID CcitafoilView::redraw_vbuffer()
 	UINT airfoil_vertex_buffer_size;
 	UINT boundary_points_vertex_buffer_size;
 	UINT camber_line_vertex_buffer_size;
+	UINT airfoil_mesh_vertex_buffer_size;
 	D3DVERTEXBUFFER_DESC vbuffer_data;
 
 	// retrive vertex buffers size
@@ -455,6 +486,10 @@ VOID CcitafoilView::redraw_vbuffer()
 	camber_line_vertex_buffer_size = vbuffer_data.Size;
 	camber_line_vertex_buffer_size /= sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3);
 
+	HR_CHECK(airfoil_mesh_vertex_buffer->GetDesc(&vbuffer_data));
+	airfoil_mesh_vertex_buffer_size = vbuffer_data.Size;
+	airfoil_mesh_vertex_buffer_size /= sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3);
+
 	// redraw vertex buffers
 	cls();
 	render();
@@ -462,12 +497,15 @@ VOID CcitafoilView::redraw_vbuffer()
 	// redraw boundary points
 	HR_CHECK(d3ddev->SetStreamSource(0, boundary_points_vertex_buffer, 0, sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))); // select the vertex buffer to display
 	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_TRIANGLELIST, 0, boundary_points_vertex_buffer_size / 3)); // copy the vertex buffer to the back buffer
+	// redraw airfoil mesh
+	HR_CHECK(d3ddev->SetStreamSource(0, airfoil_mesh_vertex_buffer, 0, sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))); // select the vertex buffer to display
+	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINELIST, 0, airfoil_mesh_vertex_buffer_size)); // copy the vertex buffer to the back buffer
 	// redraw airfoil spline
 	HR_CHECK(d3ddev->SetStreamSource(0, airfoil_vertex_buffer, 0, sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))); // select the vertex buffer to display
 	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINESTRIP, 0, airfoil_vertex_buffer_size - 1)); // copy the vertex buffer to the back buffer
 	// redraw camberline spline
 	HR_CHECK(d3ddev->SetStreamSource(0, mean_camber_line_vertex_buffer, 0, sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))); // select the vertex buffer to display
-	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINELIST, 0, camber_line_vertex_buffer_size - 1)); // copy the vertex buffer to the back buffer
+	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINESTRIP, 0, camber_line_vertex_buffer_size - 1)); // copy the vertex buffer to the back buffer
 	enddraw();
 	render();
 }
@@ -722,11 +760,7 @@ std::vector<D3DXVECTOR3> CcitafoilView::drawcrs(std::vector<D3DXVECTOR3>* _plist
 
 	// vertex.first contains (x,y,z) and that is what we want as return
 	for (i = 0; i < vertex.size(); i++)
-	{
-		if (vertex.at(i).first.x < 0)
-			continue;
 		boundary_points.push_back(vertex.at(i).first);
-	}
 
 	return boundary_points;
 }

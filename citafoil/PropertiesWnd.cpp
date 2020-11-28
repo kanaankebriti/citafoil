@@ -85,16 +85,18 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 	}
 
-	combobox_airfoils.AddString(_T("NACA-0006"));
-	combobox_airfoils.AddString(_T("NACA-0008"));
-	combobox_airfoils.AddString(_T("NACA-0010"));
-	combobox_airfoils.AddString(_T("NACA-2414"));
-	combobox_airfoils.AddString(_T("NACA-4412"));
-	combobox_airfoils.AddString(_T("NACA-4415"));
-	combobox_airfoils.AddString(_T("NACA-6409"));
-	combobox_airfoils.AddString(_T("NACA-23012"));
-	combobox_airfoils.AddString(_T("NACA-23112"));
-	combobox_airfoils.AddString(_T("NACA-25112"));
+	combobox_airfoils.AddString(_T("NACA 0006"));
+	combobox_airfoils.AddString(_T("NACA 0008"));
+	combobox_airfoils.AddString(_T("NACA 0010"));
+	combobox_airfoils.AddString(_T("NACA 2414"));
+	combobox_airfoils.AddString(_T("NACA 4412"));
+	combobox_airfoils.AddString(_T("NACA 4415"));
+	combobox_airfoils.AddString(_T("NACA 6409"));
+	combobox_airfoils.AddString(_T("NACA 23012"));
+	combobox_airfoils.AddString(_T("NACA 23112"));
+	combobox_airfoils.AddString(_T("NACA 25112"));
+	combobox_airfoils.AddString(_T("NACA 63(2)-615"));
+	combobox_airfoils.AddString(_T("NACA 65(2)-215"));
 	combobox_airfoils.SetCurSel(0);
 
 	CRect rect;

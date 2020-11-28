@@ -199,9 +199,9 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 	palette = D3DCOLOR_XRGB(255, 0, 0);
 
 	// connect mean camber line to the leading edge
-	mean_camber_line.push_back(std::pair(D3DXVECTOR3(0, 0, 0), palette));
+	//mean_camber_line.push_back(std::pair(D3DXVECTOR3(0, 0, 0), palette));
 
-	for (USHORT i = 1; i < max(upper_surface.size(), lower_surface.size()) - 2; i++)
+	for (USHORT i = 0; i < max(upper_surface.size(), lower_surface.size()) - 2; i++)
 	{
 		// rearenge point of each quadrilateral such that
 		// upper left	(x1,y1) ┐
@@ -229,7 +229,7 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 			y3 = upper_surface.at(upper_surface.size() - 1).y;
 		}
 
-		if (i < lower_surface.size())
+		if (i < lower_surface.size() - 1)
 		{
 			x2 = lower_surface.at(i).x;
 			y2 = lower_surface.at(i).y;
@@ -240,10 +240,10 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 		// consider only last two control points
 		else
 		{
-			x2 = lower_surface.at(upper_surface.size() - 2).x;
-			y2 = lower_surface.at(upper_surface.size() - 2).y;
-			x4 = lower_surface.at(upper_surface.size() - 1).x;
-			y4 = lower_surface.at(upper_surface.size() - 1).y;
+			x2 = lower_surface.at(lower_surface.size() - 2).x;
+			y2 = lower_surface.at(lower_surface.size() - 2).y;
+			x4 = lower_surface.at(lower_surface.size() - 1).x;
+			y4 = lower_surface.at(lower_surface.size() - 1).y;
 		}
 
 		float A1 = y1 - y3;
@@ -263,7 +263,7 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 
 		float x5, x6, y5, y6;
 
-		if ((A1 * A2 + B1 * B2) >= 0)
+		if ((A1 * A2 + B1 * B2) > 0)
 		{
 			x5 = (C3 * (R * B1 + B2) + B3 * (C2 + R * C1)) / (A3 * (R * B1 + B2) - B3 * (R * A1 + A2));
 			y5 = (-A3 * (C2 + R * C1) - C3 * (R * A1 + A2)) / (A3 * (R * B1 + B2) - B3 * (R * A1 + A2));
@@ -272,23 +272,30 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 		}
 		else
 		{
-			x5 = (C3 * (R * B1 - B2) - B3 * (C2 - R * C1)) / (A3 * (R * B1 - B2) - B3 * (R * A1 - A2));
-			y5 = (A3 * (C2 - R * C1) - C3 * (R * A1 - A2)) / (A3 * (R * B1 - B2) - B3 * (R * A1 - A2));
-			x6 = (C4 * (R * B1 - B2) - B4 * (C2 - R * C1)) / (A4 * (R * B1 - B2) - B4 * (R * A1 - A2));
-			y6 = (A4 * (C2 - R * C1) - C4 * (R * A1 - A2)) / (A4 * (R * B1 - B2) - B4 * (R * A1 - A2));
+			continue;
+			//x5 = (C3 * (R * B1 - B2) - B3 * (C2 - R * C1)) / (A3 * (R * B1 - B2) - B3 * (R * A1 - A2));
+			//y5 = (A3 * (C2 - R * C1) - C3 * (R * A1 - A2)) / (A3 * (R * B1 - B2) - B3 * (R * A1 - A2));
+			//x6 = (C4 * (R * B1 - B2) - B4 * (C2 - R * C1)) / (A4 * (R * B1 - B2) - B4 * (R * A1 - A2));
+			//y6 = (A4 * (C2 - R * C1) - C4 * (R * A1 - A2)) / (A4 * (R * B1 - B2) - B4 * (R * A1 - A2));
 		}
 
 		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x5, y5, 0), palette));
 		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x6, y6, 0), palette));
+
+		// add grid line
+		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x1, y1, 0), D3DCOLOR_XRGB(0, 255, 0)));
+		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x2, y2, 0), D3DCOLOR_XRGB(0, 255, 0)));
+		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x3, y3, 0), D3DCOLOR_XRGB(0, 255, 0)));
+		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x4, y4, 0), D3DCOLOR_XRGB(0, 255, 0)));
 	}
 
 	// connect mean camber line to the trailing edge
-	mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
+	//mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
 
 	// draw FALSE chord line
 	palette = D3DCOLOR_XRGB(0, 255, 255);
-	mean_camber_line.push_back(std::pair(D3DXVECTOR3(0, 0, 0), palette));
-	mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
+	//mean_camber_line.push_back(std::pair(D3DXVECTOR3(0, 0, 0), palette));
+	//mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
 
 	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(mean_camber_line.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &mean_camber_line_vertex_buffer, NULL));
 	mean_camber_line_vertex_buffer->Lock(0, 0, (VOID**)&pVoid, D3DLOCK_READONLY);	// lock the vertex buffer
@@ -460,7 +467,7 @@ VOID CcitafoilView::redraw_vbuffer()
 	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINESTRIP, 0, airfoil_vertex_buffer_size - 1)); // copy the vertex buffer to the back buffer
 	// redraw camberline spline
 	HR_CHECK(d3ddev->SetStreamSource(0, mean_camber_line_vertex_buffer, 0, sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))); // select the vertex buffer to display
-	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINESTRIP, 0, camber_line_vertex_buffer_size - 1)); // copy the vertex buffer to the back buffer
+	HR_CHECK(d3ddev->DrawPrimitive(D3DPT_LINELIST, 0, camber_line_vertex_buffer_size - 1)); // copy the vertex buffer to the back buffer
 	enddraw();
 	render();
 }

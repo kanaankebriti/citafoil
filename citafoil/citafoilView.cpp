@@ -53,6 +53,9 @@ bool InitConsole()
 #pragma comment(lib, "dxerr.lib")
 #pragma comment(lib, "legacy_stdio_definitions.lib")
 
+#define M_PI 3.14159265358979323846
+#define M_PI2 9.86960440108935861883
+
 LPCWSTR get_error_string_d3d9(HRESULT hr)
 {
 	std::wstring warning_msg_str = std::wstring(DXGetErrorString(hr)) + std::wstring(DXGetErrorDescription(hr));
@@ -175,26 +178,37 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 	std::vector<D3DXVECTOR3> upper_surface, lower_surface;
 	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> mean_camber_line;
 	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> airfoil_mesh;
-	
-	float x1, x2, x3, x4, y1, y2, y3, y4;
-	USHORT i = 1;	// from 1 in order to exclude (1,0)
 
-	while (_plist->at(i).x != 0)
+	float x1, x2, x3, x4, y1, y2, y3, y4;	// all points of each mesh	
+	float x5, x6, y5, y6;	// mean camber line points. two points hence a line.
+
+	float theta1;			// lower bound of integral for each section. transformed from x to theta.
+	float theta2;			// upper bound of integral for each section. transformed from x to theta.
+	float m;				// slope of each section
+	float partial_term;		// contribution of each mesh to alpha_lift_zero
+	float alpha_lift_zero = 0;
+
+	USHORT i = 1;			// counter. from 1 in order to exclude (1,0)
+
+
+	while (_plist->at(i).y > 0)
 	{
 		upper_surface.push_back(_plist->at(i));
 		i++;
 	}
 
-	i++;	// exclude (0,0)
+	// exclude (0,0)
+	if ((_plist->at(i).x == 0) && (_plist->at(i).y == 0))
+		i++;
 
-	while (_plist->at(i).x != 1)
+	while (_plist->at(i).x < 1)
 	{
 		lower_surface.push_back(_plist->at(i));
 		i++;
 	}
 
-	std::sort(upper_surface.begin(), upper_surface.end(), compareByX);
-	std::sort(lower_surface.begin(), lower_surface.end(), compareByX);
+	// rearrange upper_surface from (0,0) to (1,0)
+	std::reverse(upper_surface.begin(), upper_surface.end());
 
 	// mean camber line color
 	palette = D3DCOLOR_XRGB(255, 0, 0);
@@ -202,7 +216,7 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 	// connect mean camber line to the leading edge
 	mean_camber_line.push_back(std::pair(D3DXVECTOR3(0, 0, 0), palette));
 
-	for (USHORT i = 1; i < max(upper_surface.size(), lower_surface.size()) - 2; i++)
+	for (USHORT i = 0; i < max(upper_surface.size(), lower_surface.size()) - 2; i++)
 	{
 		// rearenge point of each quadrilateral such that
 		// upper left	(x1,y1) ┐
@@ -262,8 +276,6 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 		float C3 = A3 * x1 + B3 * y1;
 		float C4 = A4 * x3 + B4 * y3;
 
-		float x5, x6, y5, y6;
-
 		if ((A1 * A2 + B1 * B2) > 0)
 		{
 			x5 = (C3 * (R * B1 + B2) + B3 * (C2 + R * C1)) / (A3 * (R * B1 + B2) - B3 * (R * A1 + A2));
@@ -273,7 +285,9 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 		}
 		else
 		{
+			// this is my best effort. just ignore the problem!
 			continue;
+			// these are incorrect!
 			//x5 = (C3 * (R * B1 - B2) - B3 * (C2 - R * C1)) / (A3 * (R * B1 - B2) - B3 * (R * A1 - A2));
 			//y5 = (A3 * (C2 - R * C1) - C3 * (R * A1 - A2)) / (A3 * (R * B1 - B2) - B3 * (R * A1 - A2));
 			//x6 = (C4 * (R * B1 - B2) - B4 * (C2 - R * C1)) / (A4 * (R * B1 - B2) - B4 * (R * A1 - A2));
@@ -281,7 +295,13 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 		}
 
 		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x5, y5, 0), palette));
-		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x6, y6, 0), palette));
+
+		theta1 = acos(1 - 2 * x5);
+		theta2 = acos(1 - 2 * x6);
+		m = (y6 - y5) / (x6 - x5);
+		partial_term = m * (sin(theta2) - sin(theta1) - theta2 + theta1);
+
+		alpha_lift_zero += partial_term;
 
 		// add mesh lines
 		airfoil_mesh.push_back(std::pair(D3DXVECTOR3(x1, y1, 0), D3DCOLOR_XRGB(0, 255, 0)));
@@ -290,13 +310,33 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 		airfoil_mesh.push_back(std::pair(D3DXVECTOR3(x4, y4, 0), D3DCOLOR_XRGB(0, 255, 0)));
 	}
 
-	// connect mean camber line to the trailing edge
+	mean_camber_line.push_back(std::pair(D3DXVECTOR3(x6, y6, 0), palette));
+
+	// there are here ONLY because i can't
+	// figure out a way to find TRUE leading edge!
+	theta2 = acos(1 - 2 * mean_camber_line.at(1).first.x);
+	m = mean_camber_line.at(1).first.y / mean_camber_line.at(1).first.x;
+	partial_term = m * (sin(theta2) - theta2);
+	alpha_lift_zero += partial_term;
+
+	theta1 = acos(1 - 2 * mean_camber_line.back().first.x);
+	m = -mean_camber_line.back().first.y / (1 - mean_camber_line.back().first.x);
+	partial_term = m * (-sin(theta1) - M_PI + theta1);
+	alpha_lift_zero += partial_term;
+
 	mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
 
-	// draw FALSE chord line
+	alpha_lift_zero *= -180.000 / M_PI2;
+
+	std::cout << "alpha_lift_zero = " << alpha_lift_zero << std::endl << std::endl;
+
+	// FALSE chord line color
 	palette = D3DCOLOR_XRGB(0, 255, 255);
-	mean_camber_line.push_back(std::pair(D3DXVECTOR3(0, 0, 0), palette));
-	mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
+
+	// draw FALSE chord line
+	// chord line is considered part of mesh list for convenience
+	airfoil_mesh.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
+	airfoil_mesh.push_back(std::pair(D3DXVECTOR3(0, 0, 0), palette));
 
 	// assign mean_camber_line to mean_camber_line_vertex_buffer
 	HR_CHECK(d3ddev->CreateVertexBuffer(UINT(mean_camber_line.size() * (sizeof(D3DCOLOR) + sizeof(D3DXVECTOR3))), 0, D3DFVF, D3DPOOL_MANAGED, &mean_camber_line_vertex_buffer, NULL));
@@ -352,10 +392,14 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 		LOAD_AIRFOIL(NACA632615)
 	else if (selected_airfoil == "NACA 65(2)-215")
 		LOAD_AIRFOIL(NACA652215)
+	else if (selected_airfoil == "NACA M6")
+		LOAD_AIRFOIL(NACAM6)
 	//else if (selected_airfoil == "Selig S1223")
 		//LOAD_AIRFOIL(S1223)
 	else if (selected_airfoil == "Selig S3024")
 		LOAD_AIRFOIL(S3024)
+	else if (selected_airfoil == "Selig S9000")
+		LOAD_AIRFOIL(S9000)
 
 	// restore palette color
 	palette = D3DCOLOR_XRGB(0, 0, 0);
@@ -365,10 +409,10 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 
 VOID CcitafoilView::redraw_vbuffer()
 {
-	UINT airfoil_vertex_buffer_size;
-	UINT boundary_points_vertex_buffer_size;
-	UINT camber_line_vertex_buffer_size;
-	UINT airfoil_mesh_vertex_buffer_size;
+	UINT airfoil_vertex_buffer_size = 0;
+	UINT boundary_points_vertex_buffer_size = 0;
+	UINT camber_line_vertex_buffer_size = 0;
+	UINT airfoil_mesh_vertex_buffer_size = 0;
 	D3DVERTEXBUFFER_DESC vbuffer_data;
 
 	// retrive vertex buffers size

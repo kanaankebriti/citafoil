@@ -17,8 +17,9 @@
 #pragma once
 
 #define MIN_INTERPOLATION_LEVEL 0
-#define MAX_INTERPOLATION_LEVEL 3
+#define MAX_INTERPOLATION_LEVEL 5
 #define FREE_SPACE_HEIGHT		5
+
 class CPropertiesToolBar : public CMFCToolBar
 {
 public:

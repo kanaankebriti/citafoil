@@ -477,6 +477,14 @@ void CcitafoilView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		cam_position = D3DXVECTOR3(0.5f, 0.0f, -1.0f);
 		lookat_position = D3DXVECTOR3(0.5f, 0.0f, 0.0f);
 		break;
+	case VK_PRIOR:
+		// zoom-in
+		cam_position.z += WHEEL_ZOOM_SPEED;
+		break;
+	case VK_NEXT:
+		// zoom-out
+		cam_position.z -= WHEEL_ZOOM_SPEED;
+		break;
 	};
 
 	// the view transform matrix

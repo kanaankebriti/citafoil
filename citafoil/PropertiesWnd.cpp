@@ -42,9 +42,10 @@ BEGIN_MESSAGE_MAP(CPropertiesWnd, CDockablePane)
 	ON_WM_SIZE()
 	ON_WM_SETFOCUS()
 	ON_WM_SETTINGCHANGE()
+	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
-void CPropertiesWnd::AdjustLayout()
+void CPropertiesWnd::OnSize(UINT nType, int cx, int cy)
 {
 	if (GetSafeHwnd() == nullptr || (AfxGetMainWnd() != nullptr && AfxGetMainWnd()->IsIconic()))
 	{
@@ -56,13 +57,21 @@ void CPropertiesWnd::AdjustLayout()
 
 	// clear background
 	this->DoPaint(this->GetDC());
-
+	
 	// set GUI elements' position
-	lbl_airfoils.SetWindowPos				(nullptr, 0,								0,												lbl_airfoils_width,										combobox_airfoils_height,			SWP_NOACTIVATE | SWP_NOZORDER);
-	combobox_airfoils.SetWindowPos			(nullptr, lbl_airfoils_width,				0,												rectClient.Width() - lbl_airfoils_width,				combobox_airfoils_height,			SWP_NOACTIVATE | SWP_NOZORDER);
-	lbl_interpolation_level.SetWindowPos	(nullptr, 0,								combobox_airfoils_height + FREE_SPACE_HEIGHT,	lbl_interpolation_level_width,							edit_interpolation_level_height,	SWP_NOACTIVATE | SWP_NOZORDER);
-	edit_interpolation_level.SetWindowPos	(nullptr, lbl_interpolation_level_width,	combobox_airfoils_height + FREE_SPACE_HEIGHT,	rectClient.Width() - lbl_interpolation_level_width - 30,edit_interpolation_level_height,	SWP_NOACTIVATE | SWP_NOZORDER);
-	spinbtn_interpolation_level.SetWindowPos(nullptr, rectClient.right - 30,			combobox_airfoils_height + FREE_SPACE_HEIGHT,	30,														edit_interpolation_level_height,	SWP_NOACTIVATE | SWP_NOZORDER);
+	btn_input_groupbox.SetWindowPos(nullptr, GROUPBOX_PADDING_LR, 0, rectClient.Width() - 2 * GROUPBOX_PADDING_LR, 1.75 * (combobox_airfoils_height + GROUPBOX_PADDING_TOP), SWP_SHOWWINDOW);
+	lbl_airfoils.SetWindowPos(nullptr, GROUPBOX_PADDING_LR, GROUPBOX_PADDING_TOP, lbl_airfoils_width, combobox_airfoils_height, SWP_SHOWWINDOW);
+	combobox_airfoils.SetWindowPos(nullptr, GROUPBOX_PADDING_LR + lbl_airfoils_width, GROUPBOX_PADDING_TOP, rectClient.Width() - lbl_airfoils_width - 4 * GROUPBOX_PADDING_LR, combobox_airfoils_height, SWP_SHOWWINDOW);
+	lbl_interpolation_level.SetWindowPos(nullptr, GROUPBOX_PADDING_LR, combobox_airfoils_height + GROUPBOX_PADDING_TOP, lbl_interpolation_level_width, edit_interpolation_level_height, SWP_SHOWWINDOW);
+	edit_interpolation_level.SetWindowPos(nullptr, lbl_interpolation_level_width + GROUPBOX_PADDING_LR, combobox_airfoils_height + GROUPBOX_PADDING_TOP, rectClient.Width() - lbl_interpolation_level_width - 4 * GROUPBOX_PADDING_LR - 30, edit_interpolation_level_height, SWP_SHOWWINDOW);
+	spinbtn_interpolation_level.SetWindowPos(nullptr, rectClient.right - 30 - 3 * GROUPBOX_PADDING_LR, combobox_airfoils_height + GROUPBOX_PADDING_TOP, 30, edit_interpolation_level_height, SWP_SHOWWINDOW);
+	lbl_background_canvas.SetWindowPos(nullptr, 0, 0, rectClient.Width(), rectClient.Height(), SWP_SHOWWINDOW);
+}
+
+HBRUSH CPropertiesWnd::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	// fill background with color used to fill the window background (The default is white)
+	return CreateSolidBrush(this->GetDC()->GetBkColor());
 }
 
 VOID CPropertiesWnd::SetTarget(CWnd* m_cwnd)
@@ -80,21 +89,37 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	DWORD dwViewStyle; // Specifies the static control's window style
 
+	// background canvas
+	dwViewStyle = WS_CHILD | WS_VISIBLE;
+	if (!lbl_background_canvas.Create(NULL, dwViewStyle, rectDummy, this, IDR_LBL_BACKGROUND_CANVAS))
+	{
+		TRACE0("Failed to create master container\n");
+		return -1;
+	}
+
+	// input group box
+	dwViewStyle = WS_CHILD | WS_VISIBLE | BS_LEFT | BS_GROUPBOX;
+	if (!btn_input_groupbox.Create(L"Input", dwViewStyle, rectDummy, this, IDR_BTN_INPUT_GROUPBOX))
+	{
+		TRACE0("Failed to create input group box\n");
+		return -1;
+	}
+	
 	// airfoil label
 	dwViewStyle = WS_CHILD | WS_VISIBLE | SS_LEFT | SS_CENTERIMAGE;
-	if (!lbl_airfoils.Create(L"airfoil:", dwViewStyle, rectDummy, this, IDR_AIRFOILS_LBL))
+	if (!lbl_airfoils.Create(L"airfoil:", dwViewStyle, rectDummy, this, IDR_LBL_AIRFOILS))
 	{
-		TRACE0("Failed to create airfoil Label \n");
+		TRACE0("Failed to create airfoil Label\n");
 		return -1;
 	}
 	lbl_airfoils_width = (lbl_airfoils.GetDC()->GetTextExtent(L"airfoil:")).cx;
 
 	// airfoil selection combobox
-	dwViewStyle = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBS_DROPDOWNLIST;
+	dwViewStyle = WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST;
 
 	if (!combobox_airfoils.Create(dwViewStyle, rectDummy, this, IDR_COMBOBOX_AIRFOILS))
 	{
-		TRACE0("Failed to create Properties Combo \n");
+		TRACE0("Failed to create Properties Combo\n");
 		return -1;
 	}
 
@@ -122,9 +147,9 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// interpolation label
 	dwViewStyle = WS_CHILD | WS_VISIBLE | SS_LEFT | SS_CENTERIMAGE;
-	if (!lbl_interpolation_level.Create(L"interpolation level:", dwViewStyle, rectDummy, this, IDR_AIRFOILS_LBL))
+	if (!lbl_interpolation_level.Create(L"interpolation level:", dwViewStyle, rectDummy, this, IDR_LBL_INTERPOLATION_LEVEL))
 	{
-		TRACE0("Failed to create interpolation level Label \n");
+		TRACE0("Failed to create interpolation level Label\n");
 		return -1;
 	}
 	lbl_interpolation_level_width = (lbl_airfoils.GetDC()->GetTextExtent(L"interpolation level:")).cx;
@@ -135,13 +160,13 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	if (!edit_interpolation_level.Create(dwViewStyle, rectDummy, this, IDR_EDIT_INTERPOLATION_LEVEL))
 	{
-		TRACE0("Failed to create Interpolation Level Spinbutton \n");
+		TRACE0("Failed to create Interpolation Level Spinbutton\n");
 		return -1;
 	}
 
 	edit_interpolation_level.GetRect(&test_rect);
 	edit_interpolation_level_height = test_rect.Height();
-	edit_interpolation_level_height += 4;	// for showing selected text properly
+	edit_interpolation_level_height += 4; // for showing selected text properly
 
 	// interpolation level spin button
 	dwViewStyle = WS_CHILD | WS_VISIBLE | UDS_ALIGNRIGHT | UDS_SETBUDDYINT;
@@ -149,13 +174,13 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	if (!spinbtn_interpolation_level.Create(dwViewStyle, rectDummy, this, IDR_SPINBTN_INTERPOLATION_LEVEL))
 	{
-		TRACE0("Failed to create Interpolation Level Spinbutton \n");
+		TRACE0("Failed to create Interpolation Level Spinbutton\n");
 		return -1;
 	}
 	
-	spinbtn_interpolation_level.SetBuddy(&edit_interpolation_level);	// attach spin to edit box
+	spinbtn_interpolation_level.SetBuddy(&edit_interpolation_level); // attach spin to edit box
 	spinbtn_interpolation_level.SetRange(MIN_INTERPOLATION_LEVEL, MAX_INTERPOLATION_LEVEL);
-	spinbtn_interpolation_level.SetPos(0);	// default interpolation level
+	spinbtn_interpolation_level.SetPos(0); // default interpolation level
 
 	SetupFont();
 	AdjustLayout();
@@ -172,12 +197,6 @@ BOOL CPropertiesWnd::OnCommand(WPARAM wParam, LPARAM lParam)
 	}
 	else
 		return FALSE;
-}
-
-void CPropertiesWnd::OnSize(UINT nType, int cx, int cy)
-{
-	CDockablePane::OnSize(nType, cx, cy);
-	AdjustLayout();
 }
 
 void CPropertiesWnd::OnSetFocus(CWnd* pOldWnd)
@@ -206,6 +225,7 @@ VOID CPropertiesWnd::SetupFont()
 
 	m_fntPropList.CreateFontIndirect(&lf);
 
+	btn_input_groupbox.SetFont(&m_fntPropList);
 	lbl_airfoils.SetFont(&m_fntPropList);
 	lbl_interpolation_level.SetFont(&m_fntPropList);
 	combobox_airfoils.SetFont(&m_fntPropList);

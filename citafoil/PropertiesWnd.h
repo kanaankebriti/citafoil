@@ -18,7 +18,8 @@
 
 #define MIN_INTERPOLATION_LEVEL 0
 #define MAX_INTERPOLATION_LEVEL 5
-#define FREE_SPACE_HEIGHT		5
+#define GROUPBOX_PADDING_LR		5
+#define GROUPBOX_PADDING_TOP	22
 
 class CPropertiesToolBar : public CMFCToolBar
 {
@@ -36,7 +37,6 @@ class CPropertiesWnd : public CDockablePane
 public:
 	CPropertiesWnd() noexcept;
 	virtual ~CPropertiesWnd();
-	void AdjustLayout();
 	VOID SetTarget(CWnd* m_cwnd);
 	// GUI elements access from directx window
 	CComboBox combobox_airfoils;
@@ -51,11 +51,13 @@ private:
 	CFont	m_fntPropList;
 	CPropertiesToolBar m_wndToolBar;
 	CSpinButtonCtrl spinbtn_interpolation_level;
-	CStatic lbl_airfoils, lbl_interpolation_level;
+	CStatic lbl_airfoils, lbl_interpolation_level, lbl_background_canvas;
+	CButton btn_input_groupbox;
 	DECLARE_MESSAGE_MAP()
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
 	VOID SetupFont();
 };

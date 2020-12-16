@@ -192,7 +192,6 @@ BOOL CMainFrame::CreateDockingWindows()
 		TRACE0("Failed to create Properties window\n");
 		return FALSE; // failed to create
 	}
-
 	SetDockingWindowIcons(theApp.m_bHiColorIcons);
 	return TRUE;
 }

@@ -52,15 +52,17 @@ void CPropertiesWnd::AdjustLayout()
 	}
 
 	CRect rectClient;
-	GetClientRect(rectClient);
+	this->GetClientRect(rectClient);
 
 	// clear background
 	this->DoPaint(this->GetDC());
 
-	// set airfoil selection combobox
-	combobox_airfoils.SetWindowPos(nullptr, rectClient.left, rectClient.top, rectClient.Width(), combobox_airfoils_height, SWP_NOACTIVATE | SWP_NOZORDER);
-	edit_interpolation_level.SetWindowPos(nullptr, rectClient.left, rectClient.top + combobox_airfoils_height + FREE_SPACE_HEIGHT, 30, edit_interpolation_level_height, SWP_NOACTIVATE | SWP_NOZORDER);
-	spinbtn_interpolation_level.SetWindowPos(nullptr, rectClient.left + 30, rectClient.top + combobox_airfoils_height + FREE_SPACE_HEIGHT, 30, edit_interpolation_level_height, SWP_NOACTIVATE | SWP_NOZORDER);
+	// set GUI elements' position
+	lbl_airfoils.SetWindowPos				(nullptr, 0,								0,												lbl_airfoils_width,										combobox_airfoils_height,			SWP_NOACTIVATE | SWP_NOZORDER);
+	combobox_airfoils.SetWindowPos			(nullptr, lbl_airfoils_width,				0,												rectClient.Width() - lbl_airfoils_width,				combobox_airfoils_height,			SWP_NOACTIVATE | SWP_NOZORDER);
+	lbl_interpolation_level.SetWindowPos	(nullptr, 0,								combobox_airfoils_height + FREE_SPACE_HEIGHT,	lbl_interpolation_level_width,							edit_interpolation_level_height,	SWP_NOACTIVATE | SWP_NOZORDER);
+	edit_interpolation_level.SetWindowPos	(nullptr, lbl_interpolation_level_width,	combobox_airfoils_height + FREE_SPACE_HEIGHT,	rectClient.Width() - lbl_interpolation_level_width - 30,edit_interpolation_level_height,	SWP_NOACTIVATE | SWP_NOZORDER);
+	spinbtn_interpolation_level.SetWindowPos(nullptr, rectClient.right - 30,			combobox_airfoils_height + FREE_SPACE_HEIGHT,	30,														edit_interpolation_level_height,	SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
 VOID CPropertiesWnd::SetTarget(CWnd* m_cwnd)
@@ -73,11 +75,22 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CDockablePane::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	CRect rectDummy;
+	CRect test_rect, rectDummy;
 	rectDummy.SetRectEmpty();
 
+	DWORD dwViewStyle; // Specifies the static control's window style
+
+	// airfoil label
+	dwViewStyle = WS_CHILD | WS_VISIBLE | SS_LEFT | SS_CENTERIMAGE;
+	if (!lbl_airfoils.Create(L"airfoil:", dwViewStyle, rectDummy, this, IDR_AIRFOILS_LBL))
+	{
+		TRACE0("Failed to create airfoil Label \n");
+		return -1;
+	}
+	lbl_airfoils_width = (lbl_airfoils.GetDC()->GetTextExtent(L"airfoil:")).cx;
+
 	// airfoil selection combobox
-	DWORD dwViewStyle = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBS_DROPDOWNLIST;
+	dwViewStyle = WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBS_DROPDOWNLIST;
 
 	if (!combobox_airfoils.Create(dwViewStyle, rectDummy, this, IDR_COMBOBOX_AIRFOILS))
 	{
@@ -104,9 +117,17 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	combobox_airfoils.AddString(_T("Selig S9000"));
 	combobox_airfoils.SetCurSel(0);
 
-	CRect rect;
-	combobox_airfoils.GetClientRect(&rect);
-	combobox_airfoils_height = rect.Height();
+	combobox_airfoils.GetClientRect(&test_rect);
+	combobox_airfoils_height = test_rect.Height();
+
+	// interpolation label
+	dwViewStyle = WS_CHILD | WS_VISIBLE | SS_LEFT | SS_CENTERIMAGE;
+	if (!lbl_interpolation_level.Create(L"interpolation level:", dwViewStyle, rectDummy, this, IDR_AIRFOILS_LBL))
+	{
+		TRACE0("Failed to create interpolation level Label \n");
+		return -1;
+	}
+	lbl_interpolation_level_width = (lbl_airfoils.GetDC()->GetTextExtent(L"interpolation level:")).cx;
 
 	// interpolation level edit/buddy
 	dwViewStyle = WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER | ES_READONLY;
@@ -118,8 +139,8 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 	}
 
-	edit_interpolation_level.GetRect(&rect);
-	edit_interpolation_level_height = rect.Height();
+	edit_interpolation_level.GetRect(&test_rect);
+	edit_interpolation_level_height = test_rect.Height();
 	edit_interpolation_level_height += 4;	// for showing selected text properly
 
 	// interpolation level spin button
@@ -185,6 +206,8 @@ VOID CPropertiesWnd::SetupFont()
 
 	m_fntPropList.CreateFontIndirect(&lf);
 
+	lbl_airfoils.SetFont(&m_fntPropList);
+	lbl_interpolation_level.SetFont(&m_fntPropList);
 	combobox_airfoils.SetFont(&m_fntPropList);
 	edit_interpolation_level.SetFont(&m_fntPropList);
 }

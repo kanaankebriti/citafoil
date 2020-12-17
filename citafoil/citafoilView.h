@@ -16,10 +16,13 @@
 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░*/
 #pragma once
 
+#define D3DFVF (D3DFVF_XYZ | D3DFVF_DIFFUSE)
 #define WHEEL_ZOOM_SPEED 0.02f
 #define CAMERA_MOVEMENT_STEP 0.05f
-#define TRIANGLE_UNIT_LENGTH 0.004f // size of triangle side
-#define D3DFVF (D3DFVF_XYZ | D3DFVF_DIFFUSE)
+#define TRIANGLE_UNIT_LENGTH 0.003f // size of triangle side
+#define RESULT_DECIMAL_PRECISION 5 // digits after decimal point
+#define DEFAULT_CAM_POS { 0.5f, 0.0f, -0.75f }
+#define DEFAULT_LOOKAT_POS { 0.5f, 0.0f, 0.0f }
 
 #include <vector>
 #include <Include/d3d9.h>
@@ -67,8 +70,8 @@ private:
 	LPDIRECT3DVERTEXBUFFER9 airfoil_mesh_vertex_buffer = NULL;
 	D3DCOLOR bpalette = D3DCOLOR_XRGB(255, 255, 255);	// palette color for background
 	D3DCOLOR palette = D3DCOLOR_XRGB(0, 0, 0);			// palette color for text, graphics
-	D3DXVECTOR3 cam_position = { 0.5f, 0.0f, -1.0f };	// set default camera position
-	D3DXVECTOR3 lookat_position = { 0.5f, 0.0f, 0.0f };	// set default look-at position
+	D3DXVECTOR3 cam_position = DEFAULT_CAM_POS;			// set default camera position
+	D3DXVECTOR3 lookat_position = DEFAULT_LOOKAT_POS;	// set default look-at position
 	D3DPRESENT_PARAMETERS d3dpp;						// create a struct to hold various device information
 	VOID begindraw();
 	VOID cls();

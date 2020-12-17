@@ -41,18 +41,25 @@ public:
 	// GUI elements access from directx window
 	CComboBox combobox_airfoils;
 	CEdit edit_interpolation_level;
+	CStatic lbl_alpha_lift_zero_result;
 private:
+	// Labels
+	CStatic lbl_background_canvas;
+	CStatic lbl_airfoils;				UINT lbl_airfoils_width = 0;
+	CStatic lbl_interpolation_level;	UINT lbl_interpolation_level_width = 0;
+	CStatic lbl_alpha_lift_zero;		UINT lbl_alpha_lift_zero_width = 0;
+
+	// Group Boxes
+	CButton btn_input_groupbox;
+	CButton btn_result_groupbox;
+
 	UINT	combobox_airfoils_height = 0;
 	UINT	edit_interpolation_level_height = 0;
-	UINT	lbl_airfoils_width = 0;
-	UINT	lbl_interpolation_level_width = 0;
 	CWnd*	message_target = NULL;
 	UINT	m_nComboHeight;
 	CFont	m_fntPropList;
 	CPropertiesToolBar m_wndToolBar;
 	CSpinButtonCtrl spinbtn_interpolation_level;
-	CStatic lbl_airfoils, lbl_interpolation_level, lbl_background_canvas;
-	CButton btn_input_groupbox;
 	DECLARE_MESSAGE_MAP()
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSize(UINT nType, int cx, int cy);

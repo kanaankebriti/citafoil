@@ -328,7 +328,11 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 
 	alpha_lift_zero *= -180.000 / M_PI2;
 
-	std::cout << "alpha_lift_zero = " << alpha_lift_zero << std::endl << std::endl;
+	// retrieve lbl_alpha_lift_zero_result and put result in it
+	CStatic* lbl_alpha_lift_zero_result = &((((CMainFrame*)AfxGetMainWnd())->m_wndProperties).lbl_alpha_lift_zero_result);
+	CString alpha_lift_zero_str;
+	alpha_lift_zero_str.Format(L"%.*f°", RESULT_DECIMAL_PRECISION, alpha_lift_zero);
+	lbl_alpha_lift_zero_result->SetWindowTextW(alpha_lift_zero_str);
 
 	// FALSE chord line color
 	palette = D3DCOLOR_XRGB(0, 255, 255);
@@ -548,7 +552,7 @@ void CcitafoilView::OnDraw(CDC* /*pDC*/)
 	D3DXMATRIX matView;
 	D3DXMatrixLookAtLH(&matView,
 		&cam_position,						// the camera position. this position (negative z) helps resembling conventional cartesian space.
-		&D3DXVECTOR3(0.5f, 0.0f, 0.0f),		// the look-at position
+		&lookat_position,		// the look-at position
 		&D3DXVECTOR3(0.0f, 1.0f, 0.0f));	// the up direction
 	HR_CHECK(d3ddev->SetTransform(D3DTS_VIEW, &matView));	// set the view transform to matView
 	

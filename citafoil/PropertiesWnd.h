@@ -54,10 +54,12 @@ private:
 	CStatic lbl_airfoils, lbl_interpolation_level, lbl_background_canvas;
 	CButton btn_input_groupbox;
 	DECLARE_MESSAGE_MAP()
+	void AdjustLayout();
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+	afx_msg void OnPaint();
+	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
-	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
 	VOID SetupFont();
 };

@@ -40,24 +40,33 @@ CPropertiesWnd::~CPropertiesWnd()
 BEGIN_MESSAGE_MAP(CPropertiesWnd, CDockablePane)
 	ON_WM_CREATE()
 	ON_WM_SIZE()
+	ON_WM_PAINT()
+	ON_WM_ERASEBKGND()
 	ON_WM_SETFOCUS()
 	ON_WM_SETTINGCHANGE()
-	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
-void CPropertiesWnd::OnSize(UINT nType, int cx, int cy)
+void CPropertiesWnd::AdjustLayout()
 {
 	if (GetSafeHwnd() == nullptr || (AfxGetMainWnd() != nullptr && AfxGetMainWnd()->IsIconic()))
 	{
 		return;
-	}
+	}	
+}
 
-	CRect rectClient;
-	this->GetClientRect(rectClient);
+void CPropertiesWnd::OnSize(UINT nType, int cx, int cy)
+{
+	CDockablePane::OnSize(nType, cx, cy);
+	//AdjustLayout();
+	Invalidate();
+}
 
-	// clear background
-	//this->DoPaint(this->GetDC());
-	
+void CPropertiesWnd::OnPaint()
+{
+	// get CPane rect
+	CRect	rectClient;
+	GetClientRect(&rectClient);
+
 	// set GUI elements' position
 	btn_input_groupbox.SetWindowPos(nullptr, GROUPBOX_PADDING_LR, 0, rectClient.Width() - 2 * GROUPBOX_PADDING_LR, (UINT)(1.75 * (combobox_airfoils_height + GROUPBOX_PADDING_TOP)), SWP_SHOWWINDOW);
 	lbl_airfoils.SetWindowPos(nullptr, GROUPBOX_PADDING_LR, GROUPBOX_PADDING_TOP, lbl_airfoils_width, combobox_airfoils_height, SWP_SHOWWINDOW);
@@ -68,11 +77,11 @@ void CPropertiesWnd::OnSize(UINT nType, int cx, int cy)
 	lbl_background_canvas.SetWindowPos(nullptr, 0, 0, rectClient.Width(), rectClient.Height(), SWP_SHOWWINDOW);
 }
 
-HBRUSH CPropertiesWnd::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+BOOL CPropertiesWnd::OnEraseBkgnd(CDC* pDC)
 {
-	// fill background with color used to fill the window background (The default is white)
-	//return CreateSolidBrush(this->GetDC()->GetBkColor());
-	return CreateSolidBrush(RGB(0,0,0));
+	CWnd::OnEraseBkgnd(pDC);
+	CPaintDC dc(this); // i don't know why. but it should be here!
+	return TRUE;
 }
 
 VOID CPropertiesWnd::SetTarget(CWnd* m_cwnd)
@@ -107,13 +116,14 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	}
 	
 	// airfoil label
+	CPaintDC dc(this);
 	dwViewStyle = WS_CHILD | WS_VISIBLE | SS_LEFT | SS_CENTERIMAGE;
 	if (!lbl_airfoils.Create(L"airfoil:", dwViewStyle, rectDummy, this, IDR_LBL_AIRFOILS))
 	{
 		TRACE0("Failed to create airfoil Label\n");
 		return -1;
 	}
-	lbl_airfoils_width = (lbl_airfoils.GetDC()->GetTextExtent(L"airfoil:")).cx;
+	lbl_airfoils_width = (dc.GetTextExtent(L"airfoil:")).cx;
 
 	// airfoil selection combobox
 	dwViewStyle = WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST;
@@ -153,7 +163,7 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		TRACE0("Failed to create interpolation level Label\n");
 		return -1;
 	}
-	lbl_interpolation_level_width = (lbl_airfoils.GetDC()->GetTextExtent(L"interpolation level:")).cx;
+	lbl_interpolation_level_width = (dc.GetTextExtent(L"interpolation level:")).cx;
 
 	// interpolation level edit/buddy
 	dwViewStyle = WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER | ES_READONLY;

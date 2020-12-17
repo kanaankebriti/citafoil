@@ -46,18 +46,9 @@ BEGIN_MESSAGE_MAP(CPropertiesWnd, CDockablePane)
 	ON_WM_SETTINGCHANGE()
 END_MESSAGE_MAP()
 
-void CPropertiesWnd::AdjustLayout()
-{
-	if (GetSafeHwnd() == nullptr || (AfxGetMainWnd() != nullptr && AfxGetMainWnd()->IsIconic()))
-	{
-		return;
-	}	
-}
-
 void CPropertiesWnd::OnSize(UINT nType, int cx, int cy)
 {
 	CDockablePane::OnSize(nType, cx, cy);
-	//AdjustLayout();
 	Invalidate();
 }
 
@@ -69,11 +60,11 @@ void CPropertiesWnd::OnPaint()
 
 	// set GUI elements' position
 	btn_input_groupbox.SetWindowPos(nullptr, GROUPBOX_PADDING_LR, 0, rectClient.Width() - 2 * GROUPBOX_PADDING_LR, (UINT)(1.75 * (combobox_airfoils_height + GROUPBOX_PADDING_TOP)), SWP_SHOWWINDOW);
-	lbl_airfoils.SetWindowPos(nullptr, GROUPBOX_PADDING_LR, GROUPBOX_PADDING_TOP, lbl_airfoils_width, combobox_airfoils_height, SWP_SHOWWINDOW);
-	combobox_airfoils.SetWindowPos(nullptr, GROUPBOX_PADDING_LR + lbl_airfoils_width, GROUPBOX_PADDING_TOP, rectClient.Width() - lbl_airfoils_width - 4 * GROUPBOX_PADDING_LR, combobox_airfoils_height, SWP_SHOWWINDOW);
-	lbl_interpolation_level.SetWindowPos(nullptr, GROUPBOX_PADDING_LR, combobox_airfoils_height + GROUPBOX_PADDING_TOP, lbl_interpolation_level_width, edit_interpolation_level_height, SWP_SHOWWINDOW);
-	edit_interpolation_level.SetWindowPos(nullptr, lbl_interpolation_level_width + GROUPBOX_PADDING_LR, combobox_airfoils_height + GROUPBOX_PADDING_TOP, rectClient.Width() - lbl_interpolation_level_width - 4 * GROUPBOX_PADDING_LR - 30, edit_interpolation_level_height, SWP_SHOWWINDOW);
-	spinbtn_interpolation_level.SetWindowPos(nullptr, rectClient.right - 30 - 3 * GROUPBOX_PADDING_LR, combobox_airfoils_height + GROUPBOX_PADDING_TOP, 30, edit_interpolation_level_height, SWP_SHOWWINDOW);
+	lbl_airfoils.SetWindowPos(nullptr, 2*GROUPBOX_PADDING_LR, GROUPBOX_PADDING_TOP, lbl_airfoils_width, combobox_airfoils_height, SWP_SHOWWINDOW);
+	combobox_airfoils.SetWindowPos(nullptr, 2*GROUPBOX_PADDING_LR + lbl_airfoils_width, GROUPBOX_PADDING_TOP, rectClient.Width() - lbl_airfoils_width - 4 * GROUPBOX_PADDING_LR, combobox_airfoils_height, SWP_SHOWWINDOW);
+	lbl_interpolation_level.SetWindowPos(nullptr, 2*GROUPBOX_PADDING_LR, combobox_airfoils_height + GROUPBOX_PADDING_TOP, lbl_interpolation_level_width, edit_interpolation_level_height, SWP_SHOWWINDOW);
+	edit_interpolation_level.SetWindowPos(nullptr, lbl_interpolation_level_width + 2*GROUPBOX_PADDING_LR, combobox_airfoils_height + GROUPBOX_PADDING_TOP, rectClient.Width() - lbl_interpolation_level_width - 4 * GROUPBOX_PADDING_LR - 30, edit_interpolation_level_height, SWP_SHOWWINDOW);
+	spinbtn_interpolation_level.SetWindowPos(nullptr, rectClient.right - 30 - 2 * GROUPBOX_PADDING_LR, combobox_airfoils_height + GROUPBOX_PADDING_TOP, 30, edit_interpolation_level_height, SWP_SHOWWINDOW);
 	lbl_background_canvas.SetWindowPos(nullptr, 0, 0, rectClient.Width(), rectClient.Height(), SWP_SHOWWINDOW);
 }
 
@@ -194,7 +185,6 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	spinbtn_interpolation_level.SetPos(0); // default interpolation level
 
 	SetupFont();
-	AdjustLayout();
 	return 0;
 }
 

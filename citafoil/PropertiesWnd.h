@@ -54,7 +54,6 @@ private:
 	CStatic lbl_airfoils, lbl_interpolation_level, lbl_background_canvas;
 	CButton btn_input_groupbox;
 	DECLARE_MESSAGE_MAP()
-	void AdjustLayout();
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnPaint();

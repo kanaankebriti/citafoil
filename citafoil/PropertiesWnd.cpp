@@ -56,10 +56,10 @@ void CPropertiesWnd::OnSize(UINT nType, int cx, int cy)
 	this->GetClientRect(rectClient);
 
 	// clear background
-	this->DoPaint(this->GetDC());
+	//this->DoPaint(this->GetDC());
 	
 	// set GUI elements' position
-	btn_input_groupbox.SetWindowPos(nullptr, GROUPBOX_PADDING_LR, 0, rectClient.Width() - 2 * GROUPBOX_PADDING_LR, 1.75 * (combobox_airfoils_height + GROUPBOX_PADDING_TOP), SWP_SHOWWINDOW);
+	btn_input_groupbox.SetWindowPos(nullptr, GROUPBOX_PADDING_LR, 0, rectClient.Width() - 2 * GROUPBOX_PADDING_LR, (UINT)(1.75 * (combobox_airfoils_height + GROUPBOX_PADDING_TOP)), SWP_SHOWWINDOW);
 	lbl_airfoils.SetWindowPos(nullptr, GROUPBOX_PADDING_LR, GROUPBOX_PADDING_TOP, lbl_airfoils_width, combobox_airfoils_height, SWP_SHOWWINDOW);
 	combobox_airfoils.SetWindowPos(nullptr, GROUPBOX_PADDING_LR + lbl_airfoils_width, GROUPBOX_PADDING_TOP, rectClient.Width() - lbl_airfoils_width - 4 * GROUPBOX_PADDING_LR, combobox_airfoils_height, SWP_SHOWWINDOW);
 	lbl_interpolation_level.SetWindowPos(nullptr, GROUPBOX_PADDING_LR, combobox_airfoils_height + GROUPBOX_PADDING_TOP, lbl_interpolation_level_width, edit_interpolation_level_height, SWP_SHOWWINDOW);
@@ -71,7 +71,8 @@ void CPropertiesWnd::OnSize(UINT nType, int cx, int cy)
 HBRUSH CPropertiesWnd::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
 	// fill background with color used to fill the window background (The default is white)
-	return CreateSolidBrush(this->GetDC()->GetBkColor());
+	//return CreateSolidBrush(this->GetDC()->GetBkColor());
+	return CreateSolidBrush(RGB(0,0,0));
 }
 
 VOID CPropertiesWnd::SetTarget(CWnd* m_cwnd)

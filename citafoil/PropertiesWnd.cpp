@@ -91,7 +91,10 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CDockablePane::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-	CRect test_rect, rectDummy;
+	CString retrieved_str;			// retrieved literal string
+	BOOL	retrieved_str_valid;	// retrieved literal string validity check
+	CRect	test_rect, rectDummy;	// retrieve GUI elements dimensions
+
 	rectDummy.SetRectEmpty();
 
 	DWORD dwViewStyle; // Specifies the static control's window style
@@ -105,17 +108,23 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	}
 
 	// input group box
+	retrieved_str_valid = retrieved_str.LoadString(IDS_BTN_INPUT_GROUPBOX_CAPTION);
+	ASSERT(retrieved_str_valid);
+
 	dwViewStyle = WS_CHILD | WS_VISIBLE | BS_LEFT | BS_GROUPBOX;
-	if (!btn_input_groupbox.Create(L"Input", dwViewStyle, rectDummy, this, IDR_BTN_INPUT_GROUPBOX))
+	if (!btn_input_groupbox.Create(retrieved_str, dwViewStyle, rectDummy, this, IDR_BTN_INPUT_GROUPBOX))
 	{
 		TRACE0("Failed to create input group box\n");
 		return -1;
 	}
 
 	// airfoil label
+	retrieved_str_valid = retrieved_str.LoadString(IDS_LBL_AIRFOILS);
+	ASSERT(retrieved_str_valid);
+
 	CPaintDC dc(this);
 	dwViewStyle = WS_CHILD | WS_VISIBLE | SS_LEFT | SS_CENTERIMAGE;
-	if (!lbl_airfoils.Create(L"airfoil :", dwViewStyle, rectDummy, this, IDR_LBL_AIRFOILS))
+	if (!lbl_airfoils.Create(retrieved_str, dwViewStyle, rectDummy, this, IDR_LBL_AIRFOILS))
 	{
 		TRACE0("Failed to create airfoil Label\n");
 		return -1;
@@ -154,13 +163,16 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	combobox_airfoils_height = test_rect.Height();
 
 	// interpolation label
+	retrieved_str_valid = retrieved_str.LoadString(IDS_LBL_INTERPOLATION_LEVEL);
+	ASSERT(retrieved_str_valid);
+
 	dwViewStyle = WS_CHILD | WS_VISIBLE | SS_LEFT | SS_CENTERIMAGE;
-	if (!lbl_interpolation_level.Create(L"interpolation level :", dwViewStyle, rectDummy, this, IDR_LBL_INTERPOLATION_LEVEL))
+	if (!lbl_interpolation_level.Create(retrieved_str, dwViewStyle, rectDummy, this, IDR_LBL_INTERPOLATION_LEVEL))
 	{
 		TRACE0("Failed to create interpolation level Label\n");
 		return -1;
 	}
-	lbl_interpolation_level_width = (dc.GetTextExtent(L"interpolation level :")).cx;
+	lbl_interpolation_level_width = (dc.GetTextExtent(retrieved_str)).cx;
 
 	// interpolation level edit/buddy
 	dwViewStyle = WS_CHILD | WS_VISIBLE | WS_BORDER | ES_CENTER | ES_READONLY;
@@ -192,21 +204,27 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 
 	// result group box
+	retrieved_str_valid = retrieved_str.LoadString(IDS_BTN_RESULT_GROUPBOX_CAPTION);
+	ASSERT(retrieved_str_valid);
+
 	dwViewStyle = WS_CHILD | WS_VISIBLE | BS_LEFT | BS_GROUPBOX;
-	if (!btn_result_groupbox.Create(L"Result", dwViewStyle, rectDummy, this, IDR_BTN_INPUT_GROUPBOX))
+	if (!btn_result_groupbox.Create(retrieved_str, dwViewStyle, rectDummy, this, IDR_BTN_INPUT_GROUPBOX))
 	{
 		TRACE0("Failed to create input group box\n");
 		return -1;
 	}
 
 	// alpha lift zero label
+	retrieved_str_valid = retrieved_str.LoadString(IDS_LBL_ALPHA_LIFT_ZERO);
+	ASSERT(retrieved_str_valid);
+	
 	dwViewStyle = WS_CHILD | WS_VISIBLE | SS_LEFT | SS_CENTERIMAGE;
-	if (!lbl_alpha_lift_zero.Create(L"𝛼ₗ₌₀ :", dwViewStyle, rectDummy, this, IDR_LBL_INTERPOLATION_LEVEL))
+	if (!lbl_alpha_lift_zero.Create(retrieved_str, dwViewStyle, rectDummy, this, IDR_LBL_INTERPOLATION_LEVEL))
 	{
 		TRACE0("Failed to create interpolation alpha lift zero Label\n");
 		return -1;
 	}
-	lbl_alpha_lift_zero_width = (dc.GetTextExtent(L"𝛼ₗ₌₀ :")).cx;
+	lbl_alpha_lift_zero_width = (dc.GetTextExtent(retrieved_str)).cx;
 
 	// alpha lift zero result label
 	dwViewStyle = WS_CHILD | WS_VISIBLE | SS_CENTER | SS_CENTERIMAGE;

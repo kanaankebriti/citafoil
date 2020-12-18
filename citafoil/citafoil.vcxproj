@@ -226,7 +226,6 @@
   <ItemGroup>
     <Image Include="res\citafoil.ico" />
     <Image Include="res\citafoilDoc.ico" />
-    <Image Include="res\icon1.ico" />
     <Image Include="res\properties.bmp" />
     <Image Include="res\properties_hc.bmp" />
     <Image Include="res\properties_wnd.ico" />

@@ -187,22 +187,3 @@ void CcitafoilApp::OnAppAbout()
 	CAboutDlg aboutDlg;
 	aboutDlg.DoModal();
 }
-
-// CcitafoilApp customization load/save methods
-
-void CcitafoilApp::PreLoadState()
-{
-	BOOL bNameValid;
-	CString strName;
-	bNameValid = strName.LoadString(IDS_EDIT_MENU);
-	ASSERT(bNameValid);
-	GetContextMenuManager()->AddMenu(strName, IDR_POPUP_EDIT);
-}
-
-void CcitafoilApp::LoadCustomState()
-{
-}
-
-void CcitafoilApp::SaveCustomState()
-{
-}

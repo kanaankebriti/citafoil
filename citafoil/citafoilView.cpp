@@ -588,13 +588,6 @@ void CcitafoilView::OnRButtonUp(UINT /* nFlags */, CPoint point)
 	OnContextMenu(this, point);
 }
 
-void CcitafoilView::OnContextMenu(CWnd* /* pWnd */, CPoint point)
-{
-#ifndef SHARED_HANDLERS
-	theApp.GetContextMenuManager()->ShowPopupMenu(IDR_POPUP_EDIT, point.x, point.y, this, TRUE);
-#endif
-}
-
 /// <summary>clears entire viewport rectangle and sets background color</summary>
 VOID CcitafoilView::cls()
 {

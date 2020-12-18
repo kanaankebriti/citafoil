@@ -15,7 +15,7 @@
 #define IDR_MAINFRAME                   500
 #define IDR_citafoilTYPE                501
 #define IDI_PROPERTIES_WND              502
-#define IDI_PROPERTIES_WND_HC           503
+#define IDI_PROPERTIES_WND_ICON         502
 #define IDS_PROPERTIES_WND              600
 #define IDS_BTN_INPUT_GROUPBOX_CAPTION  601
 #define IDS_LBL_AIRFOILS                602
@@ -24,14 +24,13 @@
 #define IDS_lbl_alpha_lift_zero         605
 #define IDS_LBL_ALPHA_LIFT_ZERO         605
 #define IDS_lbl_alpha_lift_ZERO         605
-#define IDS_LBL_ALPHA_LIFT_ZERO         605
 #define ID_VIEW_TOOLBARSANDDOCKINGWINDOWS 32771
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        312
+#define _APS_NEXT_RESOURCE_VALUE        314
 #define _APS_NEXT_COMMAND_VALUE         32772
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           311

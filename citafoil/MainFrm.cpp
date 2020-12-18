@@ -34,7 +34,6 @@ const UINT uiLastUserToolBarId = uiFirstUserToolBarId + iMaxUserToolbars - 1;
 
 BEGIN_MESSAGE_MAP(CMainFrame, CFrameWndEx)
 	ON_WM_CREATE()
-	ON_REGISTERED_MESSAGE(AFX_WM_CREATETOOLBAR, &CMainFrame::OnToolbarCreateNew)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -45,34 +44,14 @@ static UINT indicators[] =
 	ID_INDICATOR_SCRL,
 };
 
-// CMainFrame construction/destruction
+CMainFrame::CMainFrame() noexcept {}
 
-CMainFrame::CMainFrame() noexcept
-{
-	// TODO: add member initialization code here
-}
-
-CMainFrame::~CMainFrame()
-{
-}
+CMainFrame::~CMainFrame() {}
 
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CFrameWndEx::OnCreate(lpCreateStruct) == -1)
 		return -1;
-
-	BOOL bNameValid;
-
-	if (!m_wndMenuBar.Create(this))
-	{
-		TRACE0("Failed to create menubar\n");
-		return -1;      // fail to create
-	}
-
-	m_wndMenuBar.SetPaneStyle(m_wndMenuBar.GetPaneStyle() | CBRS_SIZE_DYNAMIC | CBRS_TOOLTIPS | CBRS_FLYBY);
-
-	// prevent the menu bar from taking the focus on activation
-	//CMFCPopupMenu::SetForceMenuFocus(FALSE);
 
 	if (!m_wndStatusBar.Create(this))
 	{
@@ -81,36 +60,19 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	}
 	m_wndStatusBar.SetIndicators(indicators, sizeof(indicators)/sizeof(UINT));
 
-	// enable Visual Studio 2005 style docking window behavior
-	CDockingManager::SetDockingMode(DT_STANDARD);
-
-	// enable Visual Studio 2005 style docking window auto-hide behavior
-	EnableAutoHidePanes(CBRS_ALIGN_ANY);
-
 	// create docking windows
 	if (!CreateDockingWindows())
 	{
 		TRACE0("Failed to create docking windows\n");
 		return -1;
 	}
-
+	m_wndProperties.SetDockingMode(DT_STANDARD);
+	EnableAutoHidePanes(CBRS_ALIGN_ANY);
 	m_wndProperties.EnableDocking(CBRS_ALIGN_ANY);
 	DockPane(&m_wndProperties);
 
 	// set the visual manager used to draw all user interface elements
 	CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerWindows));
-
-	// enable quick (Alt+drag) toolbar customization
-	CMFCToolBar::EnableQuickCustomization();
-
-	if (CMFCToolBar::GetUserImages() == nullptr)
-	{
-		// load user-defined toolbar images
-		if (m_UserImages.Load(_T(".\\UserImages.bmp")))
-		{
-			CMFCToolBar::SetUserImages(&m_UserImages);
-		}
-	}
 
 	// enable menu personalization (most-recently used commands)
 	// TODO: define your own basic commands, ensuring that each pulldown menu has at least one basic command.
@@ -135,7 +97,11 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
 {
 	// set application's name
-	SetWindowText(L"citaplot");
+	BOOL bNameValid;
+	CString strAppTitle;
+	bNameValid = strAppTitle.LoadString(AFX_IDS_APP_TITLE);
+	ASSERT(bNameValid);
+	SetWindowText(strAppTitle);
 }
 
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
@@ -150,16 +116,18 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 
 BOOL CMainFrame::CreateDockingWindows()
 {
-	BOOL bNameValid;
 	// Create properties window
+	BOOL bNameValid;
 	CString strPropertiesWnd;
 	bNameValid = strPropertiesWnd.LoadString(IDS_PROPERTIES_WND);
 	ASSERT(bNameValid);
+
 	if (!m_wndProperties.Create(strPropertiesWnd, this, CRect(0, 0, 200, 200), TRUE, ID_VIEW_PROPERTIESWND, WS_CHILD | WS_VISIBLE | CBRS_RIGHT | CBRS_FLOAT_MULTI))
 	{
 		TRACE0("Failed to create Properties window\n");
 		return FALSE; // failed to create
 	}
+
 	SetDockingWindowIcons(theApp.m_bHiColorIcons);
 	return TRUE;
 }
@@ -170,8 +138,6 @@ void CMainFrame::SetDockingWindowIcons(BOOL bHiColorIcons)
 	m_wndProperties.SetIcon(hPropertiesBarIcon, FALSE);
 
 }
-
-// CMainFrame message handlers
 
 void CMainFrame::OnViewCustomize()
 {

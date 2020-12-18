@@ -478,8 +478,8 @@ void CcitafoilView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		break;
 	case VK_HOME:
 		// restore default position
-		cam_position = D3DXVECTOR3(0.5f, 0.0f, -1.0f);
-		lookat_position = D3DXVECTOR3(0.5f, 0.0f, 0.0f);
+		cam_position = DEFAULT_CAM_POS;
+		lookat_position = DEFAULT_LOOKAT_POS;
 		break;
 	case VK_PRIOR:
 		// zoom-in

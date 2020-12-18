@@ -21,17 +21,6 @@
 #define GROUPBOX_PADDING_LR		5
 #define GROUPBOX_PADDING_TOP	22
 
-class CPropertiesToolBar : public CMFCToolBar
-{
-public:
-	virtual void OnUpdateCmdUI(CFrameWnd* /*pTarget*/, BOOL bDisableIfNoHndler)
-	{
-		CMFCToolBar::OnUpdateCmdUI((CFrameWnd*)GetOwner(), bDisableIfNoHndler);
-	}
-
-	virtual BOOL AllowShowOnList() const { return FALSE; }
-};
-
 class CPropertiesWnd : public CDockablePane
 {
 public:
@@ -58,7 +47,6 @@ private:
 	CWnd*	message_target = NULL;
 	UINT	m_nComboHeight;
 	CFont	m_fntPropList;
-	CPropertiesToolBar m_wndToolBar;
 	CSpinButtonCtrl spinbtn_interpolation_level;
 	DECLARE_MESSAGE_MAP()
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);

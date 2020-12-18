@@ -53,8 +53,8 @@ bool InitConsole()
 #pragma comment(lib, "dxerr.lib")
 #pragma comment(lib, "legacy_stdio_definitions.lib")
 
-#define M_PI 3.14159265358979323846
-#define M_PI2 9.86960440108935861883
+#define M_PI	3.14159265358979323846f
+#define M_PI2	9.86960440108935861883f
 
 LPCWSTR get_error_string_d3d9(HRESULT hr)
 {
@@ -79,15 +79,18 @@ BEGIN_MESSAGE_MAP(CcitafoilView, CView)
 	ON_WM_CREATE()
 END_MESSAGE_MAP()
 
-CcitafoilView::CcitafoilView() noexcept
-{
-}
+CcitafoilView::CcitafoilView() noexcept {}
 
 CcitafoilView::~CcitafoilView()
 {
 	// destroy d3d9 when close document
-	//d3ddev->Release();
-	//d3d->Release();
+	// without if, it will fail on startup
+	// twice instantiation! why? i don't know!
+	if (d3ddev != NULL)
+	{
+		d3ddev->Release();
+		d3d->Release();
+	}
 }
 
 VOID CcitafoilView::terminate()
@@ -180,7 +183,7 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 	std::vector<std::pair<D3DXVECTOR3, D3DCOLOR>> airfoil_mesh;
 
 	float x1, x2, x3, x4, y1, y2, y3, y4;	// all points of each mesh	
-	float x5, x6, y5, y6;	// mean camber line points. two points hence a line.
+	float x5 = 0, x6 = 0, y5 = 0, y6 = 0;	// mean camber line points. two points hence a line.
 
 	float theta1;			// lower bound of integral for each section. transformed from x to theta.
 	float theta2;			// upper bound of integral for each section. transformed from x to theta.
@@ -267,7 +270,7 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 		float B2 = x4 - x2;
 		float C1 = -A1 * x1 - B1 * y1;
 		float C2 = -A2 * x2 - B1 * y2;
-		float R = sqrt((pow(A2, 2) + pow(B2, 2)) / (pow(A1, 2) + pow(B1, 2)));
+		float R = sqrtf((powf(A2, 2) + powf(B2, 2)) / (powf(A1, 2) + powf(B1, 2)));
 
 		float A3 = y1 - y2;
 		float A4 = y3 - y4;
@@ -296,10 +299,10 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 
 		mean_camber_line.push_back(std::pair(D3DXVECTOR3(x5, y5, 0), palette));
 
-		theta1 = acos(1 - 2 * x5);
-		theta2 = acos(1 - 2 * x6);
+		theta1 = acosf(1 - 2 * x5);
+		theta2 = acosf(1 - 2 * x6);
 		m = (y6 - y5) / (x6 - x5);
-		partial_term = m * (sin(theta2) - sin(theta1) - theta2 + theta1);
+		partial_term = m * (sinf(theta2) - sinf(theta1) - theta2 + theta1);
 
 		alpha_lift_zero += partial_term;
 
@@ -314,14 +317,14 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 
 	// there are here ONLY because i can't
 	// figure out a way to find TRUE leading edge!
-	theta2 = acos(1 - 2 * mean_camber_line.at(1).first.x);
+	theta2 = acosf(1 - 2 * mean_camber_line.at(1).first.x);
 	m = mean_camber_line.at(1).first.y / mean_camber_line.at(1).first.x;
-	partial_term = m * (sin(theta2) - theta2);
+	partial_term = m * (sinf(theta2) - theta2);
 	alpha_lift_zero += partial_term;
 
-	theta1 = acos(1 - 2 * mean_camber_line.back().first.x);
+	theta1 = acosf(1 - 2 * mean_camber_line.back().first.x);
 	m = -mean_camber_line.back().first.y / (1 - mean_camber_line.back().first.x);
-	partial_term = m * (-sin(theta1) - M_PI + theta1);
+	partial_term = m * (-sinf(theta1) - M_PI + theta1);
 	alpha_lift_zero += partial_term;
 
 	mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));

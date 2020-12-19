@@ -38,7 +38,7 @@ END_MESSAGE_MAP()
 
 CcitafoilApp::CcitafoilApp() noexcept
 {
-	// check for memory leak in debug mode
+	// check for memory leaks in debug mode
 #ifdef _DEBUG
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
@@ -90,26 +90,22 @@ BOOL CcitafoilApp::InitInstance()
 	// such as the name of your company or organization
 	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
 	LoadStdProfileSettings(4);  // Load standard INI file options (including MRU)
-
 	InitContextMenuManager();
-
 	InitKeyboardManager();
-
 	InitTooltipManager();
 	CMFCToolTipInfo ttParams;
 	ttParams.m_bVislManagerTheme = TRUE;
-	theApp.GetTooltipManager()->SetTooltipParams(AFX_TOOLTIP_TYPE_ALL,
-		RUNTIME_CLASS(CMFCToolTipCtrl), &ttParams);
+	theApp.GetTooltipManager()->SetTooltipParams(AFX_TOOLTIP_TYPE_ALL, RUNTIME_CLASS(CMFCToolTipCtrl), &ttParams);
 
 	// Register the application's document templates.  Document templates
-	//  serve as the connection between documents, frame windows and views
+	// serve as the connection between documents, frame windows and views
 	CSingleDocTemplate* pDocTemplate;
 	CMainFrame main_frame;
 	CcitafoilView main_view;
 	pDocTemplate = new CSingleDocTemplate(
 		IDR_MAINFRAME,
 		RUNTIME_CLASS(CcitafoilDoc),
-		main_frame.GetRuntimeClass(),       // main SDI frame window
+		main_frame.GetRuntimeClass(), // main SDI frame window
 		main_view.GetRuntimeClass());
 	if (!pDocTemplate)
 		return FALSE;

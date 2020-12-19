@@ -32,7 +32,6 @@ private:
 	CMFCStatusBar     m_wndStatusBar;
 	DECLARE_DYNCREATE(CMainFrame)
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
-	afx_msg void OnViewCustomize();
 	DECLARE_MESSAGE_MAP()
 	BOOL CreateDockingWindows();
 	void SetDockingWindowIcons(BOOL bHiColorIcons);

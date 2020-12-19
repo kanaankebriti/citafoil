@@ -23,7 +23,6 @@ public:
 	CPropertiesWnd m_wndProperties;
 	CMainFrame() noexcept;
 	virtual ~CMainFrame();
-	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 #ifdef _DEBUG
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;

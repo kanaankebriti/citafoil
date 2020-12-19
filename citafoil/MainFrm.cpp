@@ -65,7 +65,6 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	EnableAutoHidePanes(CBRS_ALIGN_ANY);
 	m_wndProperties.EnableDocking(CBRS_ALIGN_ANY);
 	DockPane(&m_wndProperties);
-
 	// set the visual manager used to draw all user interface elements
 	CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerWindows));
 
@@ -82,25 +81,21 @@ void CMainFrame::OnUpdateFrameTitle(BOOL bAddToTitle)
 	SetWindowText(strAppTitle);
 }
 
-BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
-{
-	if( !CFrameWndEx::PreCreateWindow(cs) )
-		return FALSE;
-	return TRUE;
-}
-
 BOOL CMainFrame::CreateDockingWindows()
 {
 	// Create properties window
+	DWORD dwNoCloseBarStyle = AFX_DEFAULT_DOCKING_PANE_STYLE & ~AFX_CBRS_CLOSE;
+	DWORD dwPaneStyle = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_RIGHT | CBRS_FLOAT_MULTI;
 	BOOL bNameValid;
 	CString strPropertiesWnd;
 	bNameValid = strPropertiesWnd.LoadString(IDS_PROPERTIES_WND);
 	ASSERT(bNameValid);
 
-	if (!m_wndProperties.Create(strPropertiesWnd, this, CRect(0, 0, 200, 200), TRUE, ID_VIEW_PROPERTIESWND, WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_RIGHT | CBRS_FLOAT_MULTI))
+	if (!m_wndProperties.Create(strPropertiesWnd, this, CRect(0, 0, 200, 200), TRUE, ID_VIEW_PROPERTIESWND,
+		dwPaneStyle, AFX_CBRS_REGULAR_TABS, dwNoCloseBarStyle))
 	{
 		TRACE0("Failed to create Solver window\n");
-		return FALSE;
+		return FALSE; // failed to create
 	}
 
 	SetDockingWindowIcons(theApp.m_bHiColorIcons);

@@ -102,7 +102,7 @@ VOID CcitafoilView::terminate()
 void CcitafoilView::OnInitialUpdate()
 {
 	// init d3d9
-	d3d = Direct3DCreate9(D3D_SDK_VERSION);		// create the Direct3D interface
+	d3d = Direct3DCreate9(D3D_SDK_VERSION); // create the Direct3D interface
 	if (!d3d)
 	{
 		ERROR_MSG(L"Failed to initialize Direct3D 9 - the application was built against the correct header files.");

@@ -26,19 +26,19 @@
 #define IDS_lbl_alpha_lift_zero         605
 #define IDS_LBL_ALPHA_LIFT_ZERO         605
 #define IDS_lbl_alpha_lift_ZERO         605
-#define IDS_LBL_ALPHA_LIFT_ZERO         605
 #define IDS_LIECENCE_INFO               606
 #define IDC_LIECENCE                    1000
 #define IDC_STATIC_LOGO                 1001
 #define IDC_STATIC_APP_INFO             1002
 #define ID_VIEW_TOOLBARSANDDOCKINGWINDOWS 32771
+#define ID_VIEW_PANELS                  32772
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        315
-#define _APS_NEXT_COMMAND_VALUE         32772
+#define _APS_NEXT_COMMAND_VALUE         32773
 #define _APS_NEXT_CONTROL_VALUE         1003
 #define _APS_NEXT_SYMED_VALUE           311
 #endif

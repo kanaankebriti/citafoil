@@ -197,6 +197,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AboutDlg.h" />
     <ClInclude Include="citafoil.h" />
     <ClInclude Include="citafoilDoc.h" />
     <ClInclude Include="citafoilView.h" />
@@ -208,6 +209,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AboutDlg.cpp" />
     <ClCompile Include="citafoil.cpp" />
     <ClCompile Include="citafoilDoc.cpp" />
     <ClCompile Include="citafoilView.cpp" />

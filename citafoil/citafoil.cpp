@@ -18,29 +18,27 @@
 #include "framework.h"
 #include "afxwinappex.h"
 #include "afxdialogex.h"
+
 #include "citafoil.h"
 #include "MainFrm.h"
-
 #include "citafoilDoc.h"
 #include "citafoilView.h"
+#include "AboutDlg.h"
 
 #ifdef _DEBUG
 #include <crtdbg.h>
 #define new DEBUG_NEW
 #endif
 
-
-// CcitafoilApp
-
 BEGIN_MESSAGE_MAP(CcitafoilApp, CWinAppEx)
 	ON_COMMAND(ID_APP_ABOUT, &CcitafoilApp::OnAppAbout)
-	// Standard file based document commands
 	ON_COMMAND(ID_FILE_NEW, &CWinAppEx::OnFileNew)
 	ON_COMMAND(ID_FILE_OPEN, &CWinAppEx::OnFileOpen)
 END_MESSAGE_MAP()
 
 CcitafoilApp::CcitafoilApp() noexcept
 {
+	// check for memory leak in debug mode
 #ifdef _DEBUG
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
@@ -59,17 +57,10 @@ CcitafoilApp::CcitafoilApp() noexcept
 	// TODO: replace application ID string below with unique ID string; recommended
 	// format for string is CompanyName.ProductName.SubProduct.VersionInformation
 	SetAppID(_T("citafoil.AppID.NoVersion"));
-
-	// TODO: add construction code here,
-	// Place all significant initialization in InitInstance
 }
 
 // The one and only CcitafoilApp object
-
 CcitafoilApp theApp;
-
-
-// CcitafoilApp initialization
 
 BOOL CcitafoilApp::InitInstance()
 {
@@ -85,7 +76,6 @@ BOOL CcitafoilApp::InitInstance()
 
 	CWinAppEx::InitInstance();
 
-
 	EnableTaskbarInteraction(FALSE);
 
 	// AfxInitRichEdit2() is required to use RichEdit control
@@ -100,7 +90,6 @@ BOOL CcitafoilApp::InitInstance()
 	// such as the name of your company or organization
 	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
 	LoadStdProfileSettings(4);  // Load standard INI file options (including MRU)
-
 
 	InitContextMenuManager();
 
@@ -133,8 +122,6 @@ BOOL CcitafoilApp::InitInstance()
 	CCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
 
-
-
 	// Dispatch commands specified on the command line.  Will return FALSE if
 	// app was launched with /RegServer, /Register, /Unregserver or /Unregister.
 	if (!ProcessShellCommand(cmdInfo))
@@ -146,45 +133,9 @@ BOOL CcitafoilApp::InitInstance()
 	return TRUE;
 }
 
-// CAboutDlg dialog used for App About
-
-class CAboutDlg : public CDialogEx
-{
-public:
-	CAboutDlg() noexcept;
-#ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_ABOUTBOX };
-#endif
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV support
-	afx_msg void OnEnSetfocusLiecence();
-	DECLARE_MESSAGE_MAP()
-};
-
-BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
-	ON_EN_SETFOCUS(IDC_LIECENCE, &CAboutDlg::OnEnSetfocusLiecence)
-END_MESSAGE_MAP()
-
-CAboutDlg::CAboutDlg() noexcept : CDialogEx(IDD_ABOUTBOX) {}
-
-void CAboutDlg::DoDataExchange(CDataExchange* pDX)
-{
-	CDialogEx::DoDataExchange(pDX);
-}
-
 // App command to run the dialog
 void CcitafoilApp::OnAppAbout()
 {
 	CAboutDlg aboutDlg;
 	aboutDlg.DoModal();
-}
-
-void CAboutDlg::OnEnSetfocusLiecence()
-{
-	SetDlgItemText(IDC_LIECENCE,
-		L"citafoil is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."
-		L"\r\n\r\n"
-		L"citafoil is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the GNU General Public License for more details.citafoil is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the GNU General Public License for more details.citafoil is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the GNU General Public License for more details."
-		L"\r\n\r\n"
-		L"You should have received a copy of the GNU General Public License along with citafoil.If not, see <https://www.gnu.org/licenses/>.");
 }

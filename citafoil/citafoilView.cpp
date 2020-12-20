@@ -163,7 +163,7 @@ void CcitafoilView::save_cl_alpha_svg()
 {
 	FLOAT y1, y2;
 	CFile svg_output_file;
-	CString cl_alpha_equation_svg, y1_str, y2_str;
+	CString cl_alpha_equation_svg, y1_str, y2_str, alpha_lift_zero_str;
 	CString default_file_name = selected_airfoil + TEXT("_cl-alpha_lvl-") + interpolation_level_str;
 	default_file_name.Replace(_T(" "), _T("-"));
 	CFileDialog FileDlg(FALSE, L"svg", default_file_name, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"SVG File (*.svg)\0\0");
@@ -174,8 +174,15 @@ void CcitafoilView::save_cl_alpha_svg()
 	// convert FLOAT to CString
 	y1_str.Format(L"%.*f", SVG_RESULT_DECIMAL_PRECISION, y1);
 	y2_str.Format(L"%.*f", SVG_RESULT_DECIMAL_PRECISION, y2);
+	alpha_lift_zero_str.Format(L"%.4f", fabs(alpha_lift_zero));
 
-	cl_alpha_equation_svg.Format(L"\n\t<line id=\"cl_alpha\" style=\"stroke:red;stroke-width:3\" x1=\"190\" y1=\"%s\" x2=\"610\" y2=\"%s\"/>", (LPCWSTR)y1_str, (LPCWSTR)y2_str);
+	cl_alpha_equation_svg.Format(
+		L"\n\t<line id=\"cl_alpha\" style=\"stroke:red;stroke-width:3\" x1=\"190\" y1=\"%s\" x2=\"610\" y2=\"%s\"/>"
+		L"\n\t<text id=\"t_(0,-2)\" x=\"100\" y=\"760\" style=\"font-size:30px\">%s</text>"
+		L"\n\t<text id=\"t_(0,-2)\" x=\"430\" y=\"760\" style=\"font-size:30px\">Cₗ=2𝜋(𝛼 %s %s)</text>"
+		, (LPCWSTR)y1_str, (LPCWSTR)y2_str
+		, (LPCWSTR)selected_airfoil
+		, alpha_lift_zero < 0 ? L"+" : L"-", (LPCWSTR)alpha_lift_zero_str);
 
 	// concat all svg sections together
 	CString svg_contex = byte_order_mark + svg_template_header + svg_template_body + cl_alpha_equation_svg + svg_template_footer;
@@ -230,7 +237,7 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 	}
 
 	// exclude (0,0)
-	if ((_plist->at(i).x == 0) && (_plist->at(i).y == 0))
+	if ((_plist->at(i).x == 0) || (_plist->at(i).y == 0))
 		i++;
 
 	while (_plist->at(i).x < 1)
@@ -344,7 +351,7 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 
 	mean_camber_line.push_back(std::pair(D3DXVECTOR3(x6, y6, 0), palette));
 
-	// there are here ONLY because i can't
+	// these are here ONLY because i can't
 	// figure out a way to find TRUE leading edge!
 	theta2 = acosf(1 - 2 * mean_camber_line.at(1).first.x);
 	m = mean_camber_line.at(1).first.y / mean_camber_line.at(1).first.x;
@@ -441,6 +448,10 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 		LOAD_AIRFOIL(NACA652215)
 	else if (selected_airfoil == "NACA M6")
 		LOAD_AIRFOIL(NACAM6)
+	//else if (selected_airfoil == "I.S.A. 571")
+		//LOAD_AIRFOIL(ISA571)
+	//else if (selected_airfoil == "I.S.A. 960")
+		//LOAD_AIRFOIL(ISA960)
 	//else if (selected_airfoil == "Selig S1223")
 		//LOAD_AIRFOIL(S1223)
 	else if (selected_airfoil == "Selig S2048")

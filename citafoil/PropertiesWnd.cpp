@@ -143,11 +143,17 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	combobox_airfoils.AddString(_T("NACA 0006"));
 	combobox_airfoils.AddString(_T("NACA 0008"));
 	combobox_airfoils.AddString(_T("NACA 0010"));
+	combobox_airfoils.AddString(_T("NACA 1408"));
+	combobox_airfoils.AddString(_T("NACA 1410"));
+	combobox_airfoils.AddString(_T("NACA 1412"));
+	combobox_airfoils.AddString(_T("NACA 2408"));
+	combobox_airfoils.AddString(_T("NACA 2410"));
 	combobox_airfoils.AddString(_T("NACA 2412"));
 	combobox_airfoils.AddString(_T("NACA 2414"));
 	combobox_airfoils.AddString(_T("NACA 4412"));
 	combobox_airfoils.AddString(_T("NACA 4415"));
 	combobox_airfoils.AddString(_T("NACA 6409"));
+	combobox_airfoils.AddString(_T("NACA 6412"));
 	combobox_airfoils.AddString(_T("NACA 23012"));
 	combobox_airfoils.AddString(_T("NACA 23112"));
 	combobox_airfoils.AddString(_T("NACA 25112"));
@@ -155,6 +161,7 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	combobox_airfoils.AddString(_T("NACA 65(2)-215"));
 	combobox_airfoils.AddString(_T("NACA M6"));
 	//combobox_airfoils.AddString(_T("Selig S1223"));
+	combobox_airfoils.AddString(_T("Selig S2048"));
 	combobox_airfoils.AddString(_T("Selig S3024"));
 	combobox_airfoils.AddString(_T("Selig S9000"));
 	combobox_airfoils.SetCurSel(0);

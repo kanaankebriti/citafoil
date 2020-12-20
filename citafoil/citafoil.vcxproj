@@ -198,6 +198,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AboutDlg.h" />
+    <ClInclude Include="airfoils.h" />
     <ClInclude Include="citafoil.h" />
     <ClInclude Include="citafoilDoc.h" />
     <ClInclude Include="citafoilView.h" />
@@ -206,6 +207,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="PropertiesWnd.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="svg_template.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>

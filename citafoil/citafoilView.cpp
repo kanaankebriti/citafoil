@@ -30,6 +30,8 @@
 #include "citafoilDoc.h"
 #include "citafoilView.h"
 #include "MainFrm.h"
+#include "airfoils.h"
+#include "svg_template.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -405,6 +407,16 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 		LOAD_AIRFOIL(NACA0008)
 	else if (selected_airfoil == "NACA 0010")
 		LOAD_AIRFOIL(NACA0010)
+	else if (selected_airfoil == "NACA 1408")
+		LOAD_AIRFOIL(NACA1408)
+	else if (selected_airfoil == "NACA 1410")
+		LOAD_AIRFOIL(NACA1410)
+	else if (selected_airfoil == "NACA 1412")
+		LOAD_AIRFOIL(NACA1412)
+	else if (selected_airfoil == "NACA 2408")
+		LOAD_AIRFOIL(NACA2408)
+	else if (selected_airfoil == "NACA 2410")
+		LOAD_AIRFOIL(NACA2410)
 	else if (selected_airfoil == "NACA 2412")
 		LOAD_AIRFOIL(NACA2412)
 	else if (selected_airfoil == "NACA 2414")
@@ -415,6 +427,8 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 		LOAD_AIRFOIL(NACA4415)
 	else if (selected_airfoil == "NACA 6409")
 		LOAD_AIRFOIL(NACA6409)
+	else if (selected_airfoil == "NACA 6412")
+		LOAD_AIRFOIL(NACA6412)
 	else if (selected_airfoil == "NACA 23012")
 		LOAD_AIRFOIL(NACA23012)
 	else if (selected_airfoil == "NACA 23112")
@@ -429,6 +443,8 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 		LOAD_AIRFOIL(NACAM6)
 	//else if (selected_airfoil == "Selig S1223")
 		//LOAD_AIRFOIL(S1223)
+	else if (selected_airfoil == "Selig S2048")
+		LOAD_AIRFOIL(S2048)
 	else if (selected_airfoil == "Selig S3024")
 		LOAD_AIRFOIL(S3024)
 	else if (selected_airfoil == "Selig S9000")

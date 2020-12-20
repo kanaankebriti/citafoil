@@ -226,18 +226,9 @@
     <ResourceCompile Include="citafoil.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\bitmap1.bmp" />
     <Image Include="res\citafoil.ico" />
-    <Image Include="res\citafoilDoc.ico" />
     <Image Include="res\computersystemproduct.ico" />
     <Image Include="res\logo-mfc.bmp" />
-    <Image Include="res\properties.bmp" />
-    <Image Include="res\properties_hc.bmp" />
-    <Image Include="res\properties_wnd.ico" />
-    <Image Include="res\properties_wnd_hc.ico" />
-    <Image Include="res\Toolbar.bmp" />
-    <Image Include="res\Toolbar256.bmp" />
-    <Image Include="res\userimages.bmp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\citafoil.rc2" />

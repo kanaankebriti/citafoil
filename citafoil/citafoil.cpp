@@ -32,8 +32,6 @@
 
 BEGIN_MESSAGE_MAP(CcitafoilApp, CWinAppEx)
 	ON_COMMAND(ID_APP_ABOUT, &CcitafoilApp::OnAppAbout)
-	ON_COMMAND(ID_FILE_NEW, &CWinAppEx::OnFileNew)
-	ON_COMMAND(ID_FILE_OPEN, &CWinAppEx::OnFileOpen)
 END_MESSAGE_MAP()
 
 CcitafoilApp::CcitafoilApp() noexcept

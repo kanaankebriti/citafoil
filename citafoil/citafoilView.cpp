@@ -53,9 +53,6 @@ bool InitConsole()
 #pragma comment(lib, "dxerr.lib")
 #pragma comment(lib, "legacy_stdio_definitions.lib")
 
-#define M_PI	3.14159265358979323846f
-#define M_PI2	9.86960440108935861883f
-
 LPCWSTR get_error_string_d3d9(HRESULT hr)
 {
 	std::wstring warning_msg_str = std::wstring(DXGetErrorString(hr)) + std::wstring(DXGetErrorDescription(hr));
@@ -72,11 +69,11 @@ IMPLEMENT_DYNCREATE(CcitafoilView, CView)
 BEGIN_MESSAGE_MAP(CcitafoilView, CView)
 	ON_WM_CONTEXTMENU()
 	ON_WM_RBUTTONUP()
-	ON_CBN_SELENDOK(IDR_COMBOBOX_AIRFOILS, &CcitafoilView::On_combobox_airfoils_changed)
-	ON_EN_CHANGE(IDR_EDIT_INTERPOLATION_LEVEL, &CcitafoilView::On_edit_interpolation_level_changed)
+	ON_CBN_SELENDOK(IDR_COMBOBOX_AIRFOILS, CcitafoilView::On_combobox_airfoils_changed)
+	ON_EN_CHANGE(IDR_EDIT_INTERPOLATION_LEVEL, CcitafoilView::On_edit_interpolation_level_changed)
+	ON_BN_CLICKED(IDR_BTN_SAVE_CL_ALPHA_SVG, CcitafoilView::save_cl_alpha_svg)
 	ON_WM_MOUSEWHEEL()
 	ON_WM_KEYDOWN()
-	ON_WM_CREATE()
 END_MESSAGE_MAP()
 
 CcitafoilView::CcitafoilView() noexcept {}
@@ -160,6 +157,36 @@ void CcitafoilView::OnInitialUpdate()
 	On_combobox_airfoils_changed();
 }
 
+void CcitafoilView::save_cl_alpha_svg()
+{
+	FLOAT y1, y2;
+	CFile svg_output_file;
+	CString cl_alpha_equation_svg, y1_str, y2_str;
+	CString default_file_name = selected_airfoil + TEXT("_cl-alpha_lvl-") + interpolation_level_str;
+	default_file_name.Replace(_T(" "), _T("-"));
+	CFileDialog FileDlg(FALSE, L"svg", default_file_name, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, L"SVG File (*.svg)\0\0");
+
+	y1 = 400 - (2.0 * D3DX_PI * (D3DXToRadian(-7.0) - alpha_lift_zero) * 150);
+	y2 = 400 - (2.0 * D3DX_PI * (D3DXToRadian(7.0) - alpha_lift_zero) * 150);
+
+	// convert FLOAT to CString
+	y1_str.Format(L"%.*f", SVG_RESULT_DECIMAL_PRECISION, y1);
+	y2_str.Format(L"%.*f", SVG_RESULT_DECIMAL_PRECISION, y2);
+
+	cl_alpha_equation_svg.Format(L"\n\t<line id=\"cl_alpha\" style=\"stroke:red;stroke-width:3\" x1=\"190\" y1=\"%s\" x2=\"610\" y2=\"%s\"/>", (LPCWSTR)y1_str, (LPCWSTR)y2_str);
+
+	// concat all svg sections together
+	CString svg_contex = byte_order_mark + svg_template_header + svg_template_body + cl_alpha_equation_svg + svg_template_footer;
+
+	if (FileDlg.DoModal() == IDOK)
+		if (svg_output_file.Open(FileDlg.GetPathName(), CFile::modeCreate | CFile::modeWrite))
+		{
+			svg_output_file.Write(svg_contex, sizeof(TCHAR) * svg_contex.GetLength());
+			svg_output_file.Flush();
+			svg_output_file.Close();
+		}
+}
+
 void CcitafoilView::On_combobox_airfoils_changed()
 {
 	// retrieve selected airfoil
@@ -189,7 +216,7 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 	float theta2;			// upper bound of integral for each section. transformed from x to theta.
 	float m;				// slope of each section
 	float partial_term;		// contribution of each mesh to alpha_lift_zero
-	float alpha_lift_zero = 0;
+	alpha_lift_zero = 0;	// reset alpha_lift_zero
 
 	USHORT i = 1;			// counter. from 1 in order to exclude (1,0)
 
@@ -324,17 +351,17 @@ VOID CcitafoilView::bisect(std::vector<D3DXVECTOR3>* _plist)
 
 	theta1 = acosf(1 - 2 * mean_camber_line.back().first.x);
 	m = -mean_camber_line.back().first.y / (1 - mean_camber_line.back().first.x);
-	partial_term = m * (-sinf(theta1) - M_PI + theta1);
+	partial_term = m * (-sinf(theta1) - D3DX_PI + theta1);
 	alpha_lift_zero += partial_term;
 
 	mean_camber_line.push_back(std::pair(D3DXVECTOR3(1, 0, 0), palette));
 
-	alpha_lift_zero *= -180.000 / M_PI2;
-
+	alpha_lift_zero *= -D3DX_1BYPI; // from integeration formula
+	
 	// retrieve lbl_alpha_lift_zero_result and put result in it
 	CStatic* lbl_alpha_lift_zero_result = &((((CMainFrame*)AfxGetMainWnd())->m_wndProperties).lbl_alpha_lift_zero_result);
 	CString alpha_lift_zero_str;
-	alpha_lift_zero_str.Format(L"%.*f°", RESULT_DECIMAL_PRECISION, alpha_lift_zero);
+	alpha_lift_zero_str.Format(L"%.*f°", RESULT_DECIMAL_PRECISION, D3DXToDegree(alpha_lift_zero));
 	lbl_alpha_lift_zero_result->SetWindowTextW(alpha_lift_zero_str);
 
 	// FALSE chord line color
@@ -366,7 +393,6 @@ void CcitafoilView::On_edit_interpolation_level_changed()
 {
 	// retrieve selected interpolation level
 	CEdit* edit_interpolation_level = &((((CMainFrame*)AfxGetMainWnd())->m_wndProperties).edit_interpolation_level);
-	CString interpolation_level_str;
 	edit_interpolation_level->GetWindowTextW(interpolation_level_str);
 	int interpolation_level = _ttoi(interpolation_level_str);
 

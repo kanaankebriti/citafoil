@@ -42,8 +42,6 @@ BEGIN_MESSAGE_MAP(CPropertiesWnd, CDockablePane)
 	ON_WM_SIZE()
 	ON_WM_PAINT()
 	ON_WM_ERASEBKGND()
-	ON_WM_SETFOCUS()
-	ON_WM_SETTINGCHANGE()
 END_MESSAGE_MAP()
 
 void CPropertiesWnd::OnSize(UINT nType, int cx, int cy)
@@ -70,6 +68,8 @@ void CPropertiesWnd::OnPaint()
 	btn_result_groupbox.SetWindowPos(nullptr, GROUPBOX_PADDING_LR, (UINT)(1.75 * (combobox_airfoils_height + GROUPBOX_PADDING_TOP)), rectClient.Width() - 2 * GROUPBOX_PADDING_LR, (UINT)(1.75 * (combobox_airfoils_height + GROUPBOX_PADDING_TOP)), SWP_SHOWWINDOW);
 		lbl_alpha_lift_zero.SetWindowPos(nullptr, 2 * GROUPBOX_PADDING_LR, (UINT)(1.75 * (combobox_airfoils_height + GROUPBOX_PADDING_TOP)) + GROUPBOX_PADDING_TOP, lbl_alpha_lift_zero_width, combobox_airfoils_height, SWP_SHOWWINDOW);
 		lbl_alpha_lift_zero_result.SetWindowPos(nullptr, 2 * GROUPBOX_PADDING_LR + lbl_alpha_lift_zero_width, (UINT)(1.75 * (combobox_airfoils_height + GROUPBOX_PADDING_TOP)) + GROUPBOX_PADDING_TOP, rectClient.Width() - lbl_alpha_lift_zero_width - 4 * GROUPBOX_PADDING_LR, combobox_airfoils_height, SWP_SHOWWINDOW);
+
+		btn_save_cl_alpha_svg.SetWindowPos(nullptr, 2 * GROUPBOX_PADDING_LR, (UINT)(1.75 * (combobox_airfoils_height + GROUPBOX_PADDING_TOP)) + GROUPBOX_PADDING_TOP + combobox_airfoils_height, rectClient.Width() - 4 * GROUPBOX_PADDING_LR, combobox_airfoils_height, SWP_SHOWWINDOW);
 
 	lbl_background_canvas.SetWindowPos(nullptr, 0, 0, rectClient.Width(), rectClient.Height(), SWP_SHOWWINDOW);
 }
@@ -234,13 +234,26 @@ int CPropertiesWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 	}
 
+	// save cl-alpha to svg button
+	retrieved_str_valid = retrieved_str.LoadString(IDS_BTN_SAVE_CL_ALPHA_SVG_CAPTION);
+	ASSERT(retrieved_str_valid);
+	
+	dwViewStyle = WS_CHILD | WS_VISIBLE | BS_CENTER;
+	if (!btn_save_cl_alpha_svg.Create(retrieved_str, dwViewStyle, rectDummy, this, IDR_BTN_SAVE_CL_ALPHA_SVG))
+	{
+		TRACE0("Failed to create save cl-alpha to svg button\n");
+		return -1;
+	}
+
+	GetDlgItem(IDR_BTN_SAVE_CL_ALPHA_SVG)->EnableWindow(TRUE);
+
 	SetupFont();
 	return 0;
 }
 
 BOOL CPropertiesWnd::OnCommand(WPARAM wParam, LPARAM lParam)
 {
-	// redirect messages to directx output
+	// redirect all messages to directx window
 	if (message_target)
 	{
 		message_target->SendMessage(WM_COMMAND, wParam, lParam);
@@ -248,11 +261,6 @@ BOOL CPropertiesWnd::OnCommand(WPARAM wParam, LPARAM lParam)
 	}
 	else
 		return FALSE;
-}
-
-void CPropertiesWnd::OnSetFocus(CWnd* pOldWnd)
-{
-	CDockablePane::OnSetFocus(pOldWnd);
 }
 
 VOID CPropertiesWnd::SetupFont()
@@ -284,4 +292,5 @@ VOID CPropertiesWnd::SetupFont()
 	btn_result_groupbox.SetFont(&m_fntPropList);
 	lbl_alpha_lift_zero.SetFont(&m_fntPropList);
 	lbl_alpha_lift_zero_result.SetFont(&m_fntPropList);
+	btn_save_cl_alpha_svg.SetFont(&m_fntPropList);
 }

@@ -14,6 +14,7 @@
 #define IDR_LBL_INTERPOLATION_LEVEL     404
 #define IDR_EDIT_INTERPOLATION_LEVEL    405
 #define IDR_SPINBTN_INTERPOLATION_LEVEL 406
+#define IDR_BTN_SAVE_CL_ALPHA_SVG       407
 #define IDR_MAINFRAME                   500
 #define IDR_citafoilTYPE                501
 #define IDI_PROPERTIES_WND              502
@@ -27,6 +28,7 @@
 #define IDS_LBL_ALPHA_LIFT_ZERO         605
 #define IDS_lbl_alpha_lift_ZERO         605
 #define IDS_LIECENCE_INFO               606
+#define IDS_BTN_SAVE_CL_ALPHA_SVG_CAPTION 607
 #define IDC_LIECENCE                    1000
 #define IDC_STATIC_LOGO                 1001
 #define IDC_STATIC_APP_INFO             1002

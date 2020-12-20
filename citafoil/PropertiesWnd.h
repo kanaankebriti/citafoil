@@ -42,6 +42,9 @@ private:
 	CButton btn_input_groupbox;
 	CButton btn_result_groupbox;
 
+	// Buttons
+	CMFCButton btn_save_cl_alpha_svg;
+
 	UINT	combobox_airfoils_height = 0;
 	UINT	edit_interpolation_level_height = 0;
 	CWnd*	message_target = NULL;
@@ -53,7 +56,6 @@ private:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnPaint();
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
-	afx_msg void OnSetFocus(CWnd* pOldWnd);
 	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
 	VOID SetupFont();
 };
